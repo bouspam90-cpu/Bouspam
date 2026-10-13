@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ht">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b65d8">
+  <title>BOUSPAM — Bous ou, nan men ou</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">B</span><div><b>BOUSPAM</b><small>Bous ou, nan men ou</small></div></div>
+    <button id="langBtn" class="lang-btn" aria-label="Change language">HT ▾</button>
+  </header>
+
+  <main>
+    <section id="welcome" class="welcome">
+      <div class="hero-copy">
+        <span class="eyebrow">BYENVINI SOU BOUSPAM</span>
+        <h1>Jere lajan w<br><span>pi fasil.</span></h1>
+        <p>Yon espas senp pou swiv balans ou, tranzaksyon ou yo ak demann retrè ou.</p>
+        <div class="hero-actions">
+          <button class="btn primary" data-open="register">Kreye kont</button>
+          <button class="btn outline" data-open="login">Konekte</button>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="card-top"><span>Balans BOUSPAM</span><span class="live-dot">●</span></div>
+        <div class="fake-balance">••••• <small>HTG</small></div>
+        <div class="card-bottom"><span>Kont ou, kontwòl ou</span><span>💙</span></div>
+      </div>
+    </section>
+
+    <section class="features">
+      <article><span class="feature-icon">💳</span><h3>Peman</h3><p>Aktivasyon kont: <b>500 HTG</b></p></article>
+      <article><span class="feature-icon">↗</span><h3>Retrè</h3><p>Retrè minimòm: <b>255 HTG</b></p></article>
+      <article><span class="feature-icon">🔐</span><h3>Sekirite</h3><p>Aksè kont ak pwoteksyon done.</p></article>
+    </section>
+
+    <section id="register" class="form-panel hidden">
+      <div class="panel-heading"><div><span class="eyebrow">KÒMANSE KOUNYE A</span><h2>Kreye kont ou</h2></div><button class="close" data-close>×</button></div>
+      <form id="registerForm">
+        <label>Non konplè<input name="name" required autocomplete="name" placeholder="Antre non ou"></label>
+        <label>Nimewo telefòn (+509)<input name="phone" required inputmode="tel" pattern="(\+?509)?[0-9]{8}" placeholder="509XXXXXXXX"></label>
+        <label>PIN 4 chif<input name="pin" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" type="password" placeholder="••••"></label>
+        <label>Kòd referans (si ou genyen)<input name="referral" placeholder="Kòd referans"></label>
+        <button class="btn primary full" type="submit">Kreye kont</button>
+        <p class="form-note">Demo lokal sèlman: pa antre enfòmasyon reyèl oswa PIN ou itilize lòt kote.</p>
+      </form>
+    </section>
+
+    <section id="login" class="form-panel hidden">
+      <div class="panel-heading"><div><span class="eyebrow">BON RETOU</span><h2>Konekte sou kont ou</h2></div><button class="close" data-close>×</button></div>
+      <form id="loginForm">
+        <label>Nimewo telefòn<input name="phone" required inputmode="tel" placeholder="Nimewo ou te enskri a"></label>
+        <label>PIN 4 chif<input name="pin" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" type="password" placeholder="••••"></label>
+        <button class="btn primary full" type="submit">Konekte</button>
+        <p class="form-note">Koneksyon sa a se yon demonstrasyon sou aparèy ou sèlman.</p>
+      </form>
+    </section>
+
+    <section id="dashboard" class="dashboard hidden">
+      <div class="dash-heading"><div><span class="eyebrow">ESPAS OU</span><h2>Bonjou, <span id="userName">zanmi</span> 👋</h2></div><button id="logout" class="btn outline">Dekonekte</button></div>
+      <div class="balance-card"><span>Balans disponib</span><strong id="balance">0.00 <small>HTG</small></strong><span class="muted">Kont demo — pa reprezante lajan reyèl</span></div>
+      <div class="dash-actions"><button class="btn primary" id="activateBtn">Aktive kont · 500 HTG</button><button class="btn outline" id="withdrawBtn">Mande retrè</button></div>
+      <div class="notice"><b>NatCash:</b> Entegrasyon peman an ap tann apwobasyon ak detay teknik ofisyèl Natcom. Pa gen tranzaksyon reyèl ki fèt nan vèsyon sa a.</div>
+      <h3>Dènye aktivite</h3><div id="activity" class="activity empty">Pa gen tranzaksyon pou kounye a.</div>
+    </section>
+
+    <section id="adminInfo" class="admin-info">
+      <span class="admin-icon">🛡️</span><div><b>Administrasyon prive</b><p>Panel administratè pwoteje a ap bezwen yon sèvè ak otantifikasyon anvan lansman piblik.</p></div>
+    </section>
+  </main>
+
+  <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
