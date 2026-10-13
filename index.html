@@ -41,27 +41,28 @@
       <div class="panel-heading"><div><span class="eyebrow">KÒMANSE KOUNYE A</span><h2>Kreye kont ou</h2></div><button class="close" data-close>×</button></div>
       <form id="registerForm">
         <label>Non konplè<input name="name" required autocomplete="name" placeholder="Antre non ou"></label>
-        <label>Nimewo telefòn (+509)<input name="phone" required inputmode="tel" pattern="(\+?509)?[0-9]{8}" placeholder="509XXXXXXXX"></label>
-        <label>PIN 4 chif<input name="pin" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" type="password" placeholder="••••"></label>
+        <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="ou@example.com"></label>
+        <label>Nimewo telefòn (+509, opsyonèl)<input name="phone" inputmode="tel" autocomplete="tel" placeholder="509XXXXXXXX"></label>
+        <label>Modpas (omwen 8 karaktè)<input name="password" required minlength="8" autocomplete="new-password" type="password" placeholder="Kreye yon modpas solid"></label>
         <label>Kòd referans (si ou genyen)<input name="referral" placeholder="Kòd referans"></label>
         <button class="btn primary full" type="submit">Kreye kont</button>
-        <p class="form-note">Demo lokal sèlman: pa antre enfòmasyon reyèl oswa PIN ou itilize lòt kote.</p>
+        <p class="form-note">Kont lan ap kreye atravè Supabase. Si verifikasyon imèl aktive, verifye imèl ou anvan ou konekte.</p>
       </form>
     </section>
 
     <section id="login" class="form-panel hidden">
       <div class="panel-heading"><div><span class="eyebrow">BON RETOU</span><h2>Konekte sou kont ou</h2></div><button class="close" data-close>×</button></div>
       <form id="loginForm">
-        <label>Nimewo telefòn<input name="phone" required inputmode="tel" placeholder="Nimewo ou te enskri a"></label>
-        <label>PIN 4 chif<input name="pin" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" type="password" placeholder="••••"></label>
+        <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="Imèl kont ou"></label>
+        <label>Modpas<input name="password" type="password" required autocomplete="current-password" placeholder="Modpas ou"></label>
         <button class="btn primary full" type="submit">Konekte</button>
-        <p class="form-note">Koneksyon sa a se yon demonstrasyon sou aparèy ou sèlman.</p>
+        <p class="form-note">Koneksyon sa a sèvi ak Supabase Auth.</p>
       </form>
     </section>
 
     <section id="dashboard" class="dashboard hidden">
       <div class="dash-heading"><div><span class="eyebrow">ESPAS OU</span><h2>Bonjou, <span id="userName">zanmi</span> 👋</h2></div><button id="logout" class="btn outline">Dekonekte</button></div>
-      <div class="balance-card"><span>Balans disponib</span><strong id="balance">0.00 <small>HTG</small></strong><span class="muted">Kont demo — pa reprezante lajan reyèl</span></div>
+      <div class="balance-card"><span>Balans disponib</span><strong id="balance">0.00 <small>HTG</small></strong><span class="muted">Balans ki soti nan bazdone a; pa reprezante lajan reyèl jiskaske peman verifye.</span></div>
       <div class="dash-actions"><button class="btn primary" id="activateBtn">Aktive kont · 500 HTG</button><button class="btn outline" id="withdrawBtn">Mande retrè</button></div>
       <div class="notice"><b>NatCash:</b> Entegrasyon peman an ap tann apwobasyon ak detay teknik ofisyèl Natcom. Pa gen tranzaksyon reyèl ki fèt nan vèsyon sa a.</div>
       <h3>Dènye aktivite</h3><div id="activity" class="activity empty">Pa gen tranzaksyon pou kounye a.</div>
@@ -74,6 +75,8 @@
 
   <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
   <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
