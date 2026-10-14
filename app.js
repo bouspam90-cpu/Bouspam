@@ -42,7 +42,3 @@ $("#activateBtn").addEventListener("click",()=>toast("Peman 500 HTG poko aktive.
 $("#withdrawBtn").addEventListener("click",()=>toast("Retrè minimòm 255 HTG poko aktive. Li bezwen validasyon sou sèvè ak entegrasyon NatCash ofisyèl."));
 $("#langBtn").addEventListener("click",()=>toast("Vèsyon sa a an kreyòl. Fransè ak anglè ap ajoute pita."));
 (async()=>{if(!db){toast("Konfigirasyon Supabase pa chaje.");return}const {data,error}=await db.auth.getSession();if(!error&&data.session)await loadDashboard(data.session.user)})();
-const { data, error } = await supabase.auth.signUp({
-  email: email,
-  password: password
-});
