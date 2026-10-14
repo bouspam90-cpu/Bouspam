@@ -23,7 +23,36 @@ async function loadDashboard(user){
  else if(!werr){$("#activity").textContent="Bous la chaje. Istwa tranzaksyon an poko disponib.";}
  $("#dashboard").scrollIntoView({behavior:"smooth",block:"start"});
 }
-function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}async function processReferral(user) {
+    if (!db || !user) return;
+
+    const referrerId = user.user_metadata?.referrer_id;
+
+    if (!referrerId) return;
+
+    if (referrerId === user.id) {
+        toast("Ou pa kapab itilize pwòp lyen referans ou.");
+        return;
+    }
+
+    const { error } = await db.rpc("register_referral", {
+        p_referrer_id: referrerId
+    });
+
+    if (error) {
+        console.error("Erè referans:", error.message);
+        toast("Referans lan poko anrejistre. Verifye sistèm nan.");
+        return;
+    }
+
+    const { error: updateError } = await db.auth.updateUser({
+        data: { referrer_id: null }
+    });
+
+    if (!updateError) {
+        toast("Referans ou anrejistre avèk siksè!");
+    }
+}
 $("#registerForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!db){toast("Koneksyon Supabase pa pare. Verifye fichye supabase-config.js la.");return}
  const d=new FormData(e.target),name=String(d.get("name")||"").trim(),email=String(d.get("email")||"").trim(),password=String(d.get("password")||""),phone=String(d.get("phone")||"").trim();
