@@ -83,32 +83,25 @@ function updateReferralLink(user, isActivated) {
   const input = $("#referralLink");
   const message = $("#referralMessage");
   const button = $("#copyReferralBtn");
-
   if (!input || !user) return;
-
   input.value = "";
-
   if (!isActivated) {
     if (button) button.disabled = true;
-
     if (message) {
       message.textContent =
         "🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.";
     }
-
     return;
   }
-  const input = $("#referralLink");
-  const message = $("#referralMessage");
-  if (!input || !user) return;
   const url = new URL(window.location.href);
   url.search = "";
   url.hash = "";
   url.searchParams.set("ref", user.id);
   input.value = url.toString();
+  if (button) button.disabled = false;
   if (message) {
     message.textContent =
-      "Lyen ou pare. Pataje li ak moun ou vle envite sou BOUSPAM.";
+      "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
   }
 }
 /* Anrejistre referans lan nan Supabase */
