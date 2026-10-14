@@ -78,7 +78,41 @@ function extractReferrerId(value) {
   return null;
 }
 /* Kreye lyen referans pèsonèl manm nan */
-function updateReferralLink(user) {
+/* Montre lyen referans lan sèlman si kont lan aktive */
+function updateReferralLink(user, isActivated) {
+  const input = $("#referralLink");
+  const message = $("#referralMessage");
+  const button = $("#copyReferralBtn");
+
+  if (!input || !user) return;
+
+  input.value = "";
+
+  if (!isActivated) {
+    if (button) button.disabled = true;
+
+    if (message) {
+      message.textContent =
+        "🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.";
+    }
+
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("ref", user.id);
+
+  input.value = url.toString();
+
+  if (button) button.disabled = false;
+
+  if (message) {
+    message.textContent =
+      "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
+  }
+}
   const input = $("#referralLink");
   const message = $("#referralMessage");
   if (!input || !user) return;
