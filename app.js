@@ -89,8 +89,14 @@ const {data,error}=await db.auth.signUp({
 $("#loginForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!db){toast("Koneksyon Supabase pa pare.");return}
  const d=new FormData(e.target);const {data,error}=await db.auth.signInWithPassword({email:String(d.get("email")||"").trim(),password:String(d.get("password")||"")});
- if(error){toast("Koneksyon pa reyisi: "+error.message);return} await loadDashboard(data.user);toast("Ou konekte sou BOUSPAM.");
-});
+ if (error) {
+    toast("Koneksyon pa reyisi: " + error.message);
+    return;
+}
+
+await processReferral(data.user);
+await loadDashboard(data.user);
+toast("Ou konekte sou BOUSPAM.");
 $("#logout").addEventListener("click",async()=>{if(db)await db.auth.signOut();currentUser=null;setSignedOutView();toast("Ou dekonekte.")});
 $("#activateBtn").addEventListener("click",()=>toast("Peman 500 HTG poko aktive. Pa voye lajan jiskaske NatCash ofisyèl ak verifikasyon peman an konekte."));
 $("#withdrawBtn").addEventListener("click",()=>toast("Retrè minimòm 255 HTG poko aktive. Li bezwen validasyon sou sèvè ak entegrasyon NatCash ofisyèl."));
