@@ -98,21 +98,6 @@ function updateReferralLink(user, isActivated) {
 
     return;
   }
-
-  const url = new URL(window.location.href);
-  url.search = "";
-  url.hash = "";
-  url.searchParams.set("ref", user.id);
-
-  input.value = url.toString();
-
-  if (button) button.disabled = false;
-
-  if (message) {
-    message.textContent =
-      "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
-  }
-}
   const input = $("#referralLink");
   const message = $("#referralMessage");
   if (!input || !user) return;
