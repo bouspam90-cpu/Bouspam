@@ -56,7 +56,28 @@ function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;",
 $("#registerForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!db){toast("Koneksyon Supabase pa pare. Verifye fichye supabase-config.js la.");return}
  const d=new FormData(e.target),name=String(d.get("name")||"").trim(),email=String(d.get("email")||"").trim(),password=String(d.get("password")||""),phone=String(d.get("phone")||"").trim();
- const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,phone}}});
+ const params = new URLSearchParams(window.location.search);
+const referrerId = params.get("ref");
+
+const userMetadata = {
+    full_name: name,
+    phone
+};
+
+if (
+    referrerId &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(referrerId)
+) {
+    userMetadata.referrer_id = referrerId;
+}
+
+const {data,error}=await db.auth.signUp({
+    email,
+    password,
+    options: {
+        data: userMetadata
+    }
+});
  if(error){toast("Enskripsyon pa reyisi: "+error.message);return}
  if(data.session){await loadDashboard(data.user);toast("Kont ou kreye epi ou konekte.")}
  else {toast("Kont la kreye. Tcheke imèl ou pou verifye kont lan, epi konekte.");e.target.reset();showPanel("login")}
