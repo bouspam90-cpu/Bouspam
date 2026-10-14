@@ -79,7 +79,11 @@ const {data,error}=await db.auth.signUp({
     }
 });
  if(error){toast("Enskripsyon pa reyisi: "+error.message);return}
- if(data.session){await loadDashboard(data.user);toast("Kont ou kreye epi ou konekte.")}
+ if (data.session) {
+    await processReferral(data.user);
+    await loadDashboard(data.user);
+    toast("Kont ou kreye epi ou konekte.");
+}
  else {toast("Kont la kreye. Tcheke imèl ou pou verifye kont lan, epi konekte.");e.target.reset();showPanel("login")}
 });
 $("#loginForm").addEventListener("submit",async e=>{
