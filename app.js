@@ -96,7 +96,8 @@ $("#loginForm").addEventListener("submit",async e=>{
 
 await processReferral(data.user);
 await loadDashboard(data.user);
-toast("Ou konekte sou BOUSPAM.");});
+toast("Ou konekte sou BOUSPAM.");
+});
 $("#logout").addEventListener("click",async()=>{if(db)await db.auth.signOut();currentUser=null;setSignedOutView();toast("Ou dekonekte.")});
 $("#activateBtn").addEventListener("click",()=>toast("Peman 500 HTG poko aktive. Pa voye lajan jiskaske NatCash ofisyèl ak verifikasyon peman an konekte."));
 $("#withdrawBtn").addEventListener("click",()=>toast("Retrè minimòm 255 HTG poko aktive. Li bezwen validasyon sou sèvè ak entegrasyon NatCash ofisyèl."));
