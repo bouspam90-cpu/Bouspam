@@ -180,7 +180,18 @@ async function loadDashboard(user) {
   }
   $("#balance").innerHTML = '— <small>HTG</small>';
   $("#activity").textContent = "Ap chaje aktivite…";
-  updateReferralLink(user);
+  const { data: profile, error: profileError } = await db
+  .from("profiles")
+  .select("is_activated")
+  .eq("id", user.id)
+  .maybeSingle();
+
+const isActivated =
+  !profileError &&
+  profile !== null &&
+  profile.is_activated === true;
+
+updateReferralLink(user, isActivated);
   const { data: wallet, error: walletError } = await db
     .from("wallets")
     .select("balance,currency")
