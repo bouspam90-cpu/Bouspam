@@ -9,250 +9,120 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <img
-        src="9EF1090D-9D52-4783-803F-0A0095A4185F.png"
-        alt="Logo BOUSPAM"
-        style="width:150px;height:65px;object-fit:contain;"
-      >
-      <div>
-        <small>Bous ou, nan men ou</small>
+<header class="topbar">
+  <a class="brand" href="#welcome" aria-label="BOUSPAM Akèy">
+    <img src="9EF1090D-9D52-4783-803F-0A0095A4185F.png" alt="Logo BOUSPAM">
+    <span><small>Bous ou, nan men ou</small></span>
+  </a>
+  <button id="langBtn" class="lang-btn" aria-label="Chanje lang">HT ▾</button>
+</header>
+
+<main>
+  <section id="welcome" class="welcome">
+    <div class="hero-copy">
+      <span class="eyebrow">BYENVINI SOU BOUSPAM</span>
+      <h1>Jwe, aprann,<br><span>touche pwen.</span></h1>
+      <p>Jwe jwèt BOUSPAM yo, suiv pwen ou, epi dekouvri defi chak jou.</p>
+      <div class="hero-actions">
+        <button class="btn primary" data-open="register">Kreye kont</button>
+        <button class="btn outline" data-open="login">Konekte</button>
       </div>
     </div>
-    <button id="langBtn" class="lang-btn" aria-label="Chanje lang">
-      HT ▾
-    </button>
-  </header>
-  <main>
-    <section id="welcome" class="welcome">
-      <div class="hero-copy">
-        <span class="eyebrow">BYENVINI SOU BOUSPAM</span>
-        <h1>Jere lajan w<br><span>pi fasil.</span></h1>
-        <p>
-          Yon espas senp pou swiv balans ou, tranzaksyon ou yo
-          ak demann retrè ou.
-        </p>
-        <div class="hero-actions">
-          <button class="btn primary" data-open="register">Kreye kont</button>
-          <button class="btn outline" data-open="login">Konekte</button>
-        </div>
-      </div>
-      <div class="hero-card">
-        <div class="card-top">
-          <span>Balans BOUSPAM</span>
-          <span class="live-dot">●</span>
-        </div>
-        <div class="fake-balance">••••• <small>HTG</small></div>
-        <div class="card-bottom">
-          <span>Kont ou, kontwòl ou</span>
-          <span>💙</span>
-        </div>
-      </div>
+    <div class="hero-card">
+      <div class="card-top"><span>BOUSPAM</span><span class="live-dot">●</span></div>
+      <div class="fake-balance">🎮 <small>13 JWÈT</small></div>
+      <div class="card-bottom"><span>Jwe ak respè</span><span>💙</span></div>
+    </div>
+  </section>
+
+  <section class="features">
+    <article><span class="feature-icon">🎮</span><h3>13 jwèt</h3><p>Jwèt rapid, defi ak jwèt ant zanmi.</p></article>
+    <article><span class="feature-icon">⭐</span><h3>Pwen jwèt</h3><p>Pwen demonstrasyon yo separe ak lajan HTG.</p></article>
+    <article><span class="feature-icon">🔐</span><h3>Sekirite</h3><p>Peman reyèl yo rete fèmen jiskaske entegrasyon pare.</p></article>
+  </section>
+
+  <section id="register" class="form-panel hidden">
+    <div class="panel-heading"><div><span class="eyebrow">KÒMANSE KOUNYE A</span><h2>Kreye kont ou</h2></div><button class="close" data-close aria-label="Fèmen">×</button></div>
+    <form id="registerForm">
+      <label>Non konplè<input name="name" required autocomplete="name" placeholder="Antre non ou"></label>
+      <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="ou@example.com"></label>
+      <label>Nimewo telefòn (+509, opsyonèl)<input name="phone" inputmode="tel" autocomplete="tel" placeholder="509XXXXXXXX"></label>
+      <label>Modpas (omwen 8 karaktè)<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Kreye yon modpas solid"></label>
+      <label>Kòd referans (si ou genyen)<input name="referral" id="referralCode" placeholder="Kòd referans"></label>
+      <button class="btn primary full" type="submit">Kreye kont</button>
+      <p class="form-note">Kont lan ap kreye atravè Supabase. Si yo mande verifikasyon imèl, verifye imèl ou anvan ou konekte.</p>
+    </form>
+  </section>
+
+  <section id="login" class="form-panel hidden">
+    <div class="panel-heading"><div><span class="eyebrow">BON RETOU</span><h2>Konekte sou kont ou</h2></div><button class="close" data-close aria-label="Fèmen">×</button></div>
+    <form id="loginForm">
+      <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="Imèl kont ou"></label>
+      <label>Modpas<input name="password" type="password" required autocomplete="current-password" placeholder="Modpas ou"></label>
+      <button class="btn primary full" type="submit">Konekte</button>
+      <p class="form-note">Koneksyon sa a sèvi ak Supabase Auth.</p>
+    </form>
+  </section>
+
+  <section id="dashboard" class="dashboard hidden">
+    <div class="dash-heading"><div><span class="eyebrow">ESPAS OU</span><h2>Bonjou, <span id="userName">zanmi</span> 👋</h2></div><button id="logout" class="btn outline">Dekonekte</button></div>
+    <div class="balance-card"><span>Balans disponib</span><strong id="balance">0.00 <small>HTG</small></strong><span class="muted">Balans bazdone a; li pa vle di lajan reyèl verifye.</span></div>
+    <div class="dash-actions"><button class="btn primary" id="activateBtn">Aktive kont · 500 HTG</button><button class="btn outline" id="withdrawBtn">Mande retrè</button></div>
+    <div class="notice"><b>NatCash:</b> Entegrasyon peman an poko aktive. Pa gen tranzaksyon reyèl nan vèsyon sa a.</div>
+    <section id="referralSection" class="referral-card">
+      <h3>🔗 Envite zanmi ou</h3><p>Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM.</p>
+      <label for="referralLink">Lyen referans pèsonèl ou</label>
+      <div class="referral-link-row"><input id="referralLink" type="text" readonly placeholder="Lyen referans ou ap parèt la"><button id="copyReferralBtn" class="btn primary" type="button">Kopye lyen an</button></div>
+      <p id="referralMessage" class="muted" role="status">Konekte pou jwenn lyen referans pèsonèl ou.</p>
+      <div class="notice">Règ referans: 255 HTG pou chak 2 referans valide (510 HTG pou 4), selon verifikasyon sistèm nan.</div>
     </section>
-    <section class="features">
-      <article>
-        <span class="feature-icon">💳</span>
-        <h3>Peman</h3>
-        <p>Aktivasyon kont: <b>500 HTG</b></p>
-      </article>
-      <article>
-        <span class="feature-icon">↗</span>
-        <h3>Retrè</h3>
-        <p>Retrè minimòm: <b>255 HTG</b></p>
-      </article>
-      <article>
-        <span class="feature-icon">🔐</span>
-        <h3>Sekirite</h3>
-        <p>Aksè kont ak pwoteksyon done.</p>
-      </article>
+    <h3>Dènye aktivite</h3><div id="activity" class="activity empty">Pa gen tranzaksyon pou kounye a.</div>
+  </section>
+
+  <section id="gamesHub" class="games-hub">
+    <div class="section-title"><div><span class="eyebrow">ESPAS DIVÈTISMAN</span><h2>🎮 BOUSPAM Games</h2><p>Chwazi yon jwèt, jwe, epi ranmase pwen demonstrasyon.</p></div></div>
+    <div class="category-tabs" role="tablist" aria-label="Kategori jwèt">
+      <button class="category-tab active" data-game-filter="all">🔥 Top matches</button>
+      <button class="category-tab" data-game-filter="top">🎮 Top jeux</button>
+    </div>
+    <div id="gamesGrid" class="games-grid" aria-live="polite"></div>
+    <section id="gamePlay" class="game-play hidden">
+      <div class="game-play-head"><div><span class="eyebrow">BOUSPAM GAME</span><h3 id="gameTitle">Jwèt</h3></div><button id="closeGame" class="close" aria-label="Fèmen jwèt la">×</button></div>
+      <div id="gameContent"></div>
+      <div class="game-feedback" id="gameFeedback" role="status"></div>
     </section>
-    <section id="register" class="form-panel hidden">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">KÒMANSE KOUNYE A</span>
-          <h2>Kreye kont ou</h2>
-        </div>
-        <button class="close" data-close aria-label="Fèmen">×</button>
-      </div>
-      <form id="registerForm">
-        <label>
-          Non konplè
-          <input
-            name="name"
-            required
-            autocomplete="name"
-            placeholder="Antre non ou"
-          >
-        </label>
-        <label>
-          Imèl
-          <input
-            name="email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="ou@example.com"
-          >
-        </label>
-        <label>
-          Nimewo telefòn (+509, opsyonèl)
-          <input
-            name="phone"
-            inputmode="tel"
-            autocomplete="tel"
-            placeholder="509XXXXXXXX"
-          >
-        </label>
-        <label>
-          Modpas (omwen 8 karaktè)
-          <input
-            name="password"
-            type="password"
-            required
-            minlength="8"
-            autocomplete="new-password"
-            placeholder="Kreye yon modpas solid"
-          >
-        </label>
-        <label>
-          Kòd referans (si ou genyen)
-          <input
-            name="referral"
-            id="referralCode"
-            placeholder="Kòd referans"
-          >
-        </label>
-        <button class="btn primary full" type="submit">Kreye kont</button>
-        <p class="form-note">
-          Kont lan ap kreye atravè Supabase. Si verifikasyon imèl aktive,
-          verifye imèl ou anvan ou konekte.
-        </p>
-      </form>
-    </section>
-    <section id="login" class="form-panel hidden">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">BON RETOU</span>
-          <h2>Konekte sou kont ou</h2>
-        </div>
-        <button class="close" data-close aria-label="Fèmen">×</button>
-      </div>
-      <form id="loginForm">
-        <label>
-          Imèl
-          <input
-            name="email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="Imèl kont ou"
-          >
-        </label>
-        <label>
-          Modpas
-          <input
-            name="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="Modpas ou"
-          >
-        </label>
-        <button class="btn primary full" type="submit">Konekte</button>
-        <p class="form-note">
-          Koneksyon sa a sèvi ak Supabase Auth.
-        </p>
-      </form>
-    </section>
-    <section id="dashboard" class="dashboard hidden">
-      <div class="dash-heading">
-        <div>
-          <span class="eyebrow">ESPAS OU</span>
-          <h2>Bonjou, <span id="userName">zanmi</span> 👋</h2>
-        </div>
-        <button id="logout" class="btn outline">Dekonekte</button>
-      </div>
-      <div class="balance-card">
-        <span>Balans disponib</span>
-        <strong id="balance">0.00 <small>HTG</small></strong>
-        <span class="muted">
-          Balans ki soti nan bazdone a; li pa reprezante lajan reyèl
-          jiskaske peman verifye.
-        </span>
-      </div>
-      <div class="dash-actions">
-        <button class="btn primary" id="activateBtn">
-          Aktive kont · 500 HTG
-        </button>
-        <button class="btn outline" id="withdrawBtn">
-          Mande retrè
-        </button>
-      </div>
-      <div class="notice">
-        <b>NatCash:</b>
-        Entegrasyon peman an poko aktive. Pa gen tranzaksyon reyèl
-        ki fèt nan vèsyon sa a.
-      </div>
-      <section id="referralSection" class="referral-card">
-        <h3>🔗 Envite zanmi ou</h3>
-        <p>
-          Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM*
-          .
-        </p>
-        <label for="referralLink">Lyen referans pèsonèl ou</label>
-        <div class="referral-link-row">
-          <input
-            id="referralLink"
-            type="text"
-            readonly
-            placeholder="Lyen referans ou ap parèt la"
-          >
-          <button
-            id="copyReferralBtn"
-            class="btn primary"
-            type="button"
-          >
-            Kopye lyen an
-          </button>
-        </div>
-        <p id="referralMessage" class="muted" role="status">
-          Konekte pou jwenn lyen referans pèsonèl ou.
-        </p>
-        <div class="notice">
-          💰 Règ referans: 255 HTG pou chak referans valide,
-          selon verifikasyon ak kondisyon sistèm nan.
-        </div>
-      </section>
-      <h3>Dènye aktivite</h3>
-      <div id="activity" class="activity empty">
-        Pa gen tranzaksyon pou kounye a.
-      </div>
-    </section>
-    <section id="adminInfo" class="admin-info">
-      <span class="admin-icon">🛡️</span>
-      <div>
-        <b>Administrasyon prive</b>
-        <p>
-          Panel administratè a dwe pwoteje ak otantifikasyon
-          ak verifikasyon dwa aksè.
-        </p>
-      </div>
-    </section>
-  </main>
-  <img
-    src="FC9C424D-6D0D-4A51-87EA-7899001F3511.png"
-    alt="BOUSPAM"
-    style="display:block;width:100%;max-width:500px;height:auto;max-height:250px;object-fit:contain;margin:20px auto;"
-  >
-  <footer>
-    <b>BOUSPAM</b>
-    <span>© 2026 · Tout dwa rezève</span>
-    <span>HTG · Ayiti</span>
-  </footer>
-  <div id="toast" class="toast" role="status"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
-  <script src="app.js"></script>
+  </section>
+
+  <section id="walletSection" class="wallet-section">
+    <div class="section-title"><div><span class="eyebrow">BOUS OU</span><h2>💳 Aktivite ak bous</h2></div></div>
+    <nav class="wallet-tabs" aria-label="Meni bous">
+      <button class="wallet-tab active" data-wallet-tab="all">☷ Tout</button>
+      <button class="wallet-tab" data-wallet-tab="deposit">⬆ Depo</button>
+      <button class="wallet-tab" data-wallet-tab="withdraw">⬇ Retrè</button>
+      <button class="wallet-tab" data-wallet-tab="referral">👥 Referans</button>
+    </nav>
+    <div id="walletTabContent" class="wallet-tab-content">Konekte pou wè aktivite kont ou. Depo ak retrè reyèl poko aktive.</div>
+  </section>
+
+  <section id="adminInfo" class="admin-info"><span class="admin-icon">🛡️</span><div><b>Administrasyon prive</b><p>Panel administratè a dwe pwoteje ak otantifikasyon ak verifikasyon dwa aksè.</p></div></section>
+</main>
+
+<img src="FC9C424D-6D0D-4A51-87EA-7899001F3511.png" alt="BOUSPAM" class="footer-art">
+<footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+
+<nav class="bottom-nav" aria-label="Navigasyon prensipal">
+  <a class="bottom-link active" href="#welcome"><span>⌂</span><small>Akèy</small></a>
+  <a class="bottom-link" href="#walletSection"><span>◷</span><small>Istorik</small></a>
+  <a class="bottom-link" href="#walletSection" data-bottom-tab="referral"><span>👥</span><small>Referans</small></a>
+  <a class="bottom-link" href="#supportSection"><span>🎧</span><small>Sipò</small></a>
+  <a class="bottom-link" href="#accountSection" data-account-link><span>☻</span><small>Kont</small></a>
+</nav>
+<section id="supportSection" class="small-modal hidden"><h3>🎧 Sipò BOUSPAM</h3><p>Pou kounye a, kontakte administratè BOUSPAM nan kanal ofisyèl ou deja genyen. N ap ajoute fòm sipò pita.</p><button class="btn outline" data-close-modal>Fèmen</button></section>
+<section id="accountSection" class="small-modal hidden"><h3>👤 Kont mwen</h3><p id="accountSummary">Konekte pou wè enfòmasyon kont ou.</p><button class="btn outline" data-close-modal>Fèmen</button></section>
+
+<div id="toast" class="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

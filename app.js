@@ -1,378 +1,88 @@
 const $ = (s) => document.querySelector(s);
 const panels = ["register", "login"];
-const supabaseReady = Boolean(
-  window.supabase &&
-  window.BOUSPAM_SUPABASE_URL &&
-  window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY
-);
-const db = supabaseReady
-  ? window.supabase.createClient(
-      window.BOUSPAM_SUPABASE_URL,
-      window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY
-    )
-  : null;
+const supabaseReady = Boolean(window.supabase && window.BOUSPAM_SUPABASE_URL && window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY);
+const db = supabaseReady ? window.supabase.createClient(window.BOUSPAM_SUPABASE_URL, window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY) : null;
 let currentUser = null;
-function toast(msg) {
-  const t = $("#toast");
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 4500);
-}
-function showPanel(id) {
-  panels.forEach((p) => {
-    const panel = $("#" + p);
-    if (panel) panel.classList.toggle("hidden", p !== id);
-  });
-  $("#dashboard")?.classList.add("hidden");
-  $("#" + id)?.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
-}
-document.querySelectorAll("[data-open]").forEach((button) => {
-  button.addEventListener("click", () => showPanel(button.dataset.open));
-});
-document.querySelectorAll("[data-close]").forEach((button) => {
-  button.addEventListener("click", () => {
-    button.closest("section")?.classList.add("hidden");
-  });
-});
-function setSignedOutView() {
-  currentUser = null;
-  panels.forEach((p) => $("#" + p)?.classList.add("hidden"));
-  $("#dashboard")?.classList.add("hidden");
-  $("#welcome")?.classList.remove("hidden");
-  $(".features")?.classList.remove("hidden");
-  $("#adminInfo")?.classList.remove("hidden");
-}
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[c]);
-}
-function isValidUUID(value) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    String(value || "").trim()
-  );
-}
-/* Jwenn ID referans lan nan yon UUID oswa nan yon lyen */
-function extractReferrerId(value) {
-  const input = String(value || "").trim();
-  if (isValidUUID(input)) {
-    return input;
-  }
-  try {
-    const url = new URL(input);
-    const ref = url.searchParams.get("ref");
-    if (ref && isValidUUID(ref)) {
-      return ref;
-    }
-  } catch (_) {
-    // Antre a pa yon lyen konplè.
-  }
-  return null;
-}
-/* Kreye lyen referans pèsonèl manm nan */
-/* Montre lyen referans lan sèlman si kont lan aktive */
-function updateReferralLink(user, isActivated) {
-  const input = $("#referralLink");
-  const message = $("#referralMessage");
-  const button = $("#copyReferralBtn");
-  if (!input || !user) return;
-  input.value = "";
-  if (!isActivated) {
-    if (button) button.disabled = true;
-    if (message) {
-      message.textContent =
-        "🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.";
-    }
-    return;
-  }
-  const url = new URL(window.location.href);
-  url.search = "";
-  url.hash = "";
-  url.searchParams.set("ref", user.id);
-  input.value = url.toString();
-  if (button) button.disabled = false;
-  if (message) {
-    message.textContent =
-      "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
-  }
-}
-/* Anrejistre referans lan nan Supabase */
-async function processReferral(user) {
-  if (!db || !user) return;
-  const referrerId = extractReferrerId(
-    user.user_metadata?.referrer_id
-  );
-  if (!referrerId) return;
-  if (referrerId.toLowerCase() === user.id.toLowerCase()) {
-    toast("Ou pa kapab itilize pwòp lyen referans ou.");
-    return;
-  }
-  const { error } = await db.rpc("register_referral", {
-    p_referrer_id: referrerId
-  });
-  if (error) {
-    console.error("Erè referans:", error.message);
-    toast(
-      "Referans lan poko anrejistre. Li ka deja anrejistre oswa gen yon pwoblèm nan sistèm nan."
-    );
-    return;
-  }
-  /*
-   * Retire referans lan nan metadata apre anrejistreman an reyisi.
-   * Sa anpeche nou eseye anrejistre menm referans lan chak fwa.
-   */
-  const { error: updateError } = await db.auth.updateUser({
-    data: {
-      referrer_id: null
-    }
-  });
-  if (updateError) {
-    console.error(
-      "Referans anrejistre, men metadata a pa t ajou:",
-      updateError.message
-    );
-  }
-  toast("Referans ou anrejistre avèk siksè!");
-}
-/* Chaje tablodbò manm nan */
-async function loadDashboard(user) {
-  if (!db || !user) return;
-  currentUser = user;
-  panels.forEach((p) => $("#" + p)?.classList.add("hidden"));
-  $("#welcome")?.classList.add("hidden");
-  $(".features")?.classList.add("hidden");
-  $("#adminInfo")?.classList.add("hidden");
-  $("#dashboard")?.classList.remove("hidden");
-  const meta = user.user_metadata || {};
-  if ($("#userName")) {
-    $("#userName").textContent =
-      meta.full_name || user.email || "zanmi";
-  }
-  $("#balance").innerHTML = '— <small>HTG</small>';
-  $("#activity").textContent = "Ap chaje aktivite…";
-  const { data: profile, error: profileError } = await db
-  .from("profiles")
-  .select("is_activated")
-  .eq("id", user.id)
-  .maybeSingle();
+let gamePoints = Number(localStorage.getItem("bouspam_demo_game_points") || 0);
+let activeGame = null;
+const gameList = [
+ {id:"wheel",title:"Woulet BOUSPAM",emoji:"🎡",tag:"TOP",desc:"Vire woulet la pou jwenn pwen.",kind:"chance"},
+ {id:"number",title:"Devinèt nimewo",emoji:"🎯",tag:"POPILÈ",desc:"Devine nimewo ki kache a.",kind:"solo"},
+ {id:"quiz",title:"Kesyon entèlijans",emoji:"🧠",tag:"KONESANS",desc:"Teste sa ou konnen.",kind:"solo"},
+ {id:"tic",title:"Tic-Tac-Toe",emoji:"❌⭕",tag:"MATCH",desc:"Jwe kont òdinatè a.",kind:"match"},
+ {id:"word",title:"Devinèt mo",emoji:"🔤",tag:"MO",desc:"Devine mo a lèt pa lèt.",kind:"solo"},
+ {id:"rps",title:"Wòch, papye, sizo",emoji:"🪨📄✂️",tag:"MATCH",desc:"Chwazi mouvman ou.",kind:"match"},
+ {id:"daily",title:"Defi chak jou",emoji:"🏆",tag:"CHAK JOU",desc:"Reponn defi jodi a.",kind:"daily"},
+ {id:"cards",title:"Kat mistè",emoji:"🃏",tag:"MISTÈ",desc:"Chwazi youn nan kat yo.",kind:"chance"},
+ {id:"boxes",title:"Bwat sipriz",emoji:"🎁",tag:"SIPRIZ",desc:"Chwazi yon bwat pou pwen.",kind:"chance"},
+ {id:"hidden",title:"Chèche objè kache",emoji:"🔎",tag:"OBSÈVASYON",desc:"Jwenn objè ki diferan an.",kind:"solo"},
+ {id:"riddle",title:"Devinèt rapid",emoji:"🧩",tag:"RAPID",desc:"Rezoud ti devinèt la.",kind:"solo"},
+ {id:"race",title:"Kous kont tan",emoji:"⏱️",tag:"TAN",desc:"Reponn anvan tan an fini.",kind:"solo"},
+ {id:"friends",title:"Defi ant zanmi",emoji:"👥",tag:"ZANMI",desc:"Yon defi ou ka pataje.",kind:"match"}
+];
+function toast(msg){const t=$("#toast");if(!t)return;t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3500);}
+function showPanel(id){panels.forEach(p=>$("#"+p)?.classList.toggle("hidden",p!==id));$("#dashboard")?.classList.add("hidden");$("#"+id)?.scrollIntoView({behavior:"smooth",block:"center"});}
+document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>showPanel(b.dataset.open)));
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("section")?.classList.add("hidden")));
+document.querySelectorAll("[data-close-modal]").forEach(b=>b.addEventListener("click",()=>b.closest(".small-modal")?.classList.add("hidden")));
+function setSignedOutView(){currentUser=null;panels.forEach(p=>$("#"+p)?.classList.add("hidden"));$("#dashboard")?.classList.add("hidden");$("#welcome")?.classList.remove("hidden");$(".features")?.classList.remove("hidden");$("#adminInfo")?.classList.remove("hidden");}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function isValidUUID(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value||"").trim());}
+function extractReferrerId(value){const input=String(value||"").trim();if(isValidUUID(input))return input;try{const url=new URL(input);const ref=url.searchParams.get("ref");if(ref&&isValidUUID(ref))return ref;}catch(_){}return null;}
+function updateReferralLink(user,isActivated){const input=$("#referralLink"),message=$("#referralMessage"),button=$("#copyReferralBtn");if(!input||!user)return;input.value="";if(!isActivated){if(button)button.disabled=true;if(message)message.textContent="🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.";return;}const url=new URL(window.location.href);url.search="";url.hash="";url.searchParams.set("ref",user.id);input.value=url.toString();if(button)button.disabled=false;if(message)message.textContent="Lyen referans ou pare. Ou kapab kopye li epi pataje li.";}
+async function processReferral(user){if(!db||!user)return;const referrerId=extractReferrerId(user.user_metadata?.referrer_id);if(!referrerId)return;if(referrerId.toLowerCase()===user.id.toLowerCase()){toast("Ou pa kapab itilize pwòp lyen referans ou.");return;}const {error}=await db.rpc("register_referral",{p_referrer_id:referrerId});if(error){console.error("Erè referans:",error.message);toast("Referans lan poko anrejistre. Li ka deja anrejistre oswa gen yon pwoblèm.");return;}const {error:updateError}=await db.auth.updateUser({data:{referrer_id:null}});if(updateError)console.error("Metadata referans:",updateError.message);toast("Referans ou anrejistre avèk siksè!");}
+async function loadDashboard(user){if(!db||!user)return;currentUser=user;panels.forEach(p=>$("#"+p)?.classList.add("hidden"));$("#welcome")?.classList.add("hidden");$(".features")?.classList.add("hidden");$("#adminInfo")?.classList.add("hidden");$("#dashboard")?.classList.remove("hidden");const meta=user.user_metadata||{};if($("#userName"))$("#userName").textContent=meta.full_name||user.email||"zanmi";if($("#accountSummary"))$("#accountSummary").textContent=(meta.full_name||user.email||"Manm BOUSPAM")+" · "+(user.email||"");$("#balance").innerHTML='— <small>HTG</small>';$("#activity").textContent="Ap chaje aktivite…";
+ const {data:profile,error:profileError}=await db.from("profiles").select("is_activated").eq("id",user.id).maybeSingle();const isActivated=!profileError&&profile!==null&&profile.is_activated===true;updateReferralLink(user,isActivated);
+ const {data:wallet,error:walletError}=await db.from("wallets").select("balance,currency").eq("user_id",user.id).maybeSingle();if(walletError){$("#balance").innerHTML='0.00 <small>HTG</small>';$("#activity").textContent="Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo.";}else if(wallet)$("#balance").innerHTML=`${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency||"HTG")}</small>`;
+ const {data:transactions,error:transactionError}=await db.from("transactions").select("type,amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(10);
+ if(!transactionError&&transactions&&transactions.length){$("#activity").classList.remove("empty");$("#activity").innerHTML=transactions.map(x=>`<div class="activity-row"><b>${escapeHtml(x.type)}</b> · ${Number(x.amount).toFixed(2)} HTG · ${escapeHtml(x.status)}<small>${new Date(x.created_at).toLocaleString()}</small></div>`).join("");}else if(!transactionError)$("#activity").textContent="Pa gen tranzaksyon verifye pou kounye a.";else if(!walletError)$("#activity").textContent="Bous la chaje. Istwa tranzaksyon an poko disponib.";
+ $("#dashboard").scrollIntoView({behavior:"smooth",block:"start"});}
+$("#copyReferralBtn")?.addEventListener("click",async()=>{const input=$("#referralLink"),message=$("#referralMessage");if(!input||!input.value){toast("Lyen referans lan poko disponib.");return;}try{await navigator.clipboard.writeText(input.value);}catch(_){input.focus();input.select();if(!document.execCommand("copy")){toast("Seleksyone lyen an epi kopye li manyèlman.");return;}}if(message)message.textContent="Lyen an kopye! Ou kapab pataje li.";toast("Lyen referans lan kopye avèk siksè!");});
+$("#registerForm")?.addEventListener("submit",async event=>{event.preventDefault();if(!db){toast("Koneksyon Supabase pa pare. Verifye supabase-config.js.");return;}const form=new FormData(event.target),name=String(form.get("name")||"").trim(),email=String(form.get("email")||"").trim(),password=String(form.get("password")||""),phone=String(form.get("phone")||"").trim();const params=new URLSearchParams(window.location.search),urlReferrer=extractReferrerId(params.get("ref")),formReferrer=extractReferrerId(form.get("referral"));const userMetadata={full_name:name,phone};const referrerId=urlReferrer||formReferrer;if(referrerId)userMetadata.referrer_id=referrerId;const btn=event.target.querySelector('button[type="submit"]');if(btn)btn.disabled=true;try{const {data,error}=await db.auth.signUp({email,password,options:{data:userMetadata}});if(error){toast("Enskripsyon pa reyisi: "+error.message);return;}if(data.session&&data.user){await processReferral(data.user);await loadDashboard(data.user);toast("Kont ou kreye epi ou konekte.");}else{toast("Kont la kreye. Verifye imèl ou anvan ou konekte si yo mande sa.");event.target.reset();showPanel("login");}}catch(e){console.error(e);toast("Yon erè rive pandan enskripsyon an. Eseye ankò.");}finally{if(btn)btn.disabled=false;}});
+$("#loginForm")?.addEventListener("submit",async event=>{event.preventDefault();if(!db){toast("Koneksyon Supabase pa pare.");return;}const form=new FormData(event.target),email=String(form.get("email")||"").trim(),password=String(form.get("password")||""),btn=event.target.querySelector('button[type="submit"]');if(btn)btn.disabled=true;try{const {data,error}=await db.auth.signInWithPassword({email,password});if(error){toast("Koneksyon pa reyisi: "+error.message);return;}await processReferral(data.user);await loadDashboard(data.user);toast("Ou konekte sou BOUSPAM.");}catch(e){console.error(e);toast("Yon erè rive pandan koneksyon an.");}finally{if(btn)btn.disabled=false;}});
+$("#logout")?.addEventListener("click",async()=>{if(db){const {error}=await db.auth.signOut();if(error){toast("Nou pa kapab dekonekte kounye a.");return;}}setSignedOutView();toast("Ou dekonekte.");});
+$("#activateBtn")?.addEventListener("click",()=>toast("Peman 500 HTG poko aktive. Pa voye lajan jiskaske peman ofisyèl ak verifikasyon yo konekte."));
+$("#withdrawBtn")?.addEventListener("click",()=>toast("Retrè minimòm 255 HTG poko aktive. Sistèm nan bezwen validasyon sou sèvè ak peman ofisyèl."));
+$("#langBtn")?.addEventListener("click",()=>toast("Vèsyon sa a an kreyòl. Fransè ak anglè ap ajoute pita."));
 
-const isActivated =
-  !profileError &&
-  profile !== null &&
-  profile.is_activated === true;
-
-updateReferralLink(user, isActivated);
-  const { data: wallet, error: walletError } = await db
-    .from("wallets")
-    .select("balance,currency")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (walletError) {
-    $("#balance").innerHTML = '0.00 <small>HTG</small>';
-    $("#activity").textContent =
-      "Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo nan Supabase.";
-  } else if (wallet) {
-    $("#balance").innerHTML =
-      `${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency || "HTG")}</small>`;
-  }
-  const { data: transactions, error: transactionError } = await db
-    .from("transactions")
-    .select("type,amount,status,created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-  if (
-    !transactionError &&
-    transactions &&
-    transactions.length > 0
-  ) {
-    $("#activity").classList.remove("empty");
-    $("#activity").innerHTML = transactions.map((transaction) => `
-      <div class="activity-row">
-        <b>${escapeHtml(transaction.type)}</b>
-        · ${Number(transaction.amount).toFixed(2)} HTG
-        · ${escapeHtml(transaction.status)}
-        <small>${new Date(transaction.created_at).toLocaleString()}</small>
-      </div>
-    `).join("");
-  } else if (!transactionError) {
-    $("#activity").textContent =
-      "Pa gen tranzaksyon verifye pou kounye a.";
-  } else if (!walletError) {
-    $("#activity").textContent =
-      "Bous la chaje. Istwa tranzaksyon an poko disponib.";
-  }
-  $("#dashboard").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+function renderGames(filter="all"){const grid=$("#gamesGrid");if(!grid)return;const games=filter==="top"?gameList.slice(0,8):gameList;grid.innerHTML=games.map((g,i)=>`<button class="game-card" data-game="${g.id}" style="--art1:${["#0753bf","#7b24bc","#087e8a","#9a3b20","#0c8a65"][i%5]};--art2:${["#112a64","#182e72","#10284c","#54247a","#123a70"][i%5]}" aria-label="Jwe ${g.title}"><span class="game-art"><span class="game-emoji">${g.emoji}</span></span><span class="game-tag">${g.tag}</span><span class="game-online">● JWE</span><span class="game-info"><strong>${g.title}</strong><small>${g.desc}</small></span></button>`).join("");grid.querySelectorAll("[data-game]").forEach(b=>b.addEventListener("click",()=>openGame(b.dataset.game)));}
+document.querySelectorAll("[data-game-filter]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-game-filter]").forEach(x=>x.classList.toggle("active",x===b));renderGames(b.dataset.gameFilter);}));
+function points(n){gamePoints+=n;localStorage.setItem("bouspam_demo_game_points",String(gamePoints));toast(`+${n} pwen demonstrasyon! Total: ${gamePoints}`);}
+function feedback(msg){const el=$("#gameFeedback");if(el)el.textContent=msg;}
+function openGame(id){activeGame=id;const g=gameList.find(x=>x.id===id);if(!g)return;$("#gameTitle").textContent=g.emoji+" "+g.title;$("#gamePlay").classList.remove("hidden");$("#gameContent").innerHTML=gameTemplate(id);feedback("Pwen sa yo se pwen demonstrasyon lokal; yo pa lajan reyèl.");wireGame(id);$("#gamePlay").scrollIntoView({behavior:"smooth",block:"nearest"});}
+$("#closeGame")?.addEventListener("click",()=>$("#gamePlay").classList.add("hidden"));
+function gameTemplate(id){const templates={
+wheel:`<div class="game-ui"><p>Peze vire pou jwenn pwen. Rezilta yo fèt pou amizman sèlman.</p><div id="wheelResult" class="game-big">🎡</div><div class="game-controls"><button class="game-btn" id="spinWheel">Vire woulet</button></div></div>`,
+number:`<div class="game-ui"><p>Chwazi yon nimewo ant 1 ak 10. Ou gen 3 esè.</p><div class="game-controls"><input id="numberGuess" type="number" min="1" max="10" placeholder="1–10"><button class="game-btn" id="guessNumber">Devine</button></div><div id="numberTries" class="game-stat">Esè ki rete: 3</div></div>`,
+quiz:`<div class="game-ui"><p id="quizQuestion"></p><div id="quizAnswers" class="game-controls"></div></div>`,
+tic:`<div class="game-ui"><p>Ou se X. Jwe kont òdinatè a.</p><div class="tic-grid" id="ticGrid"></div><div class="game-controls"><button class="game-btn secondary" id="resetTic">Rekòmanse</button></div></div>`,
+word:`<div class="game-ui"><p>Devine mo kreyòl la. Antre yon lèt chak fwa.</p><div id="wordLetters" class="letter-row"></div><div class="game-controls"><input id="wordGuess" maxlength="1" placeholder="Yon lèt"><button class="game-btn" id="guessLetter">Eseye lèt la</button></div><div id="wordTries" class="game-stat">6 esè rete</div></div>`,
+rps:`<div class="game-ui"><p>Chwazi wòch, papye oswa sizo.</p><div class="game-controls"><button class="game-btn choice-btn" data-rps="rock">🪨 Wòch</button><button class="game-btn choice-btn" data-rps="paper">📄 Papye</button><button class="game-btn choice-btn" data-rps="scissors">✂️ Sizo</button></div><div id="rpsResult" class="game-stat">Pare pou jwe?</div></div>`,
+daily:`<div class="game-ui"><p>Defi jodi a: konbyen jou ki genyen nan yon semèn?</p><div class="game-controls"><button class="game-btn" data-daily="5">5</button><button class="game-btn" data-daily="7">7</button><button class="game-btn" data-daily="10">10</button></div></div>`,
+cards:`<div class="game-ui"><p>Chwazi youn nan 3 kat yo pou dekouvri pwen li.</p><div class="game-controls"><button class="game-btn" data-card="0">🂠 Kat 1</button><button class="game-btn" data-card="1">🂠 Kat 2</button><button class="game-btn" data-card="2">🂠 Kat 3</button></div><div id="cardResult" class="game-stat">Chwazi yon kat.</div></div>`,
+boxes:`<div class="game-ui"><p>Chwazi yon bwat sipriz. Ou ka jwenn 0, 5 oswa 10 pwen.</p><div class="game-controls"><button class="game-btn" data-box="0">🎁 Bwat A</button><button class="game-btn" data-box="1">🎁 Bwat B</button><button class="game-btn" data-box="2">🎁 Bwat C</button></div><div id="boxResult" class="game-stat">Ki bwat ou chwazi?</div></div>`,
+hidden:`<div class="game-ui"><p>Ki emoji ki diferan nan liy lan?</p><div class="game-big">🍎 🍎 🍎 🍏 🍎</div><div class="game-controls"><button class="game-btn" id="hiddenFind">Mwen jwenn li: 4yèm lan</button><button class="game-btn secondary" id="hiddenSkip">Pase</button></div></div>`,
+riddle:`<div class="game-ui"><p>Devinèt: Mwen gen zegwi, men mwen pa koud. Kisa mwen ye?</p><div class="game-controls"><button class="game-btn" data-riddle="clock">Revèy</button><button class="game-btn" data-riddle="fish">Pwason</button><button class="game-btn" data-riddle="tree">Pye bwa</button></div></div>`,
+race:`<div class="game-ui"><p>Reponn kesyon anvan 10 segonn fini: 6 × 7 = ?</p><div id="raceTimer" class="game-big">10</div><div class="game-controls"><button class="game-btn" data-race="42">42</button><button class="game-btn" data-race="36">36</button><button class="game-btn" data-race="48">48</button><button class="game-btn" id="startRace">Kòmanse revèy</button></div></div>`,
+friends:`<div class="game-ui"><p>Defi zanmi: pataje kesyon sa a ak yon zanmi epi mande l reponn: “Ki bagay ou ta aprann si ou te gen yon jou lib?”</p><div class="game-controls"><button class="game-btn" id="friendDone">Mwen fè defi a</button><button class="game-btn secondary" id="friendCopy">Kopye defi a</button></div></div>`
+};return templates[id]||"<p>Jwèt sa a ap pare.</p>";}
+function wireGame(id){
+ if(id==="wheel")$("#spinWheel").onclick=()=>{const opts=[["⭐ +5 pwen",5],["🎉 +10 pwen",10],["🍀 Bòn chans",0],["💙 +3 pwen",3]];const o=opts[Math.floor(Math.random()*opts.length)];$("#wheelResult").textContent=o[0];if(o[1])points(o[1]);feedback("Woulet demonstrasyon an fini.");};
+ if(id==="number"){let answer=Math.floor(Math.random()*10)+1,tries=3;$("#guessNumber").onclick=()=>{const v=Number($("#numberGuess").value);if(v<1||v>10||!v){feedback("Antre yon nimewo ant 1 ak 10.");return;}tries--;$("#numberTries").textContent=`Esè ki rete: ${tries}`;if(v===answer){feedback("Bravo! Ou jwenn nimewo a.");points(10);$("#guessNumber").disabled=true;}else if(tries<=0){feedback(`Ou fini esè yo. Nimewo a se ${answer}.`);$("#guessNumber").disabled=true;}else feedback(v<answer?"Eseye yon nimewo ki pi gwo.":"Eseye yon nimewo ki pi piti.");};}
+ if(id==="quiz"){const qs=[{q:"Ki planèt nou rete sou li?",a:["Mas","Latè","Venis"],ok:1},{q:"Konbyen jou ki nan yon semèn?",a:["5","7","9"],ok:1},{q:"Ki bèt ki rele wa forè a souvan?",a:["Lyon","Chat","Kabrit"],ok:0}];const q=qs[Math.floor(Math.random()*qs.length)];$("#quizQuestion").textContent=q.q;$("#quizAnswers").innerHTML=q.a.map((a,i)=>`<button class="game-btn" data-quiz="${i}">${a}</button>`).join("");$("#quizAnswers").querySelectorAll("[data-quiz]").forEach(b=>b.onclick=()=>{if(Number(b.dataset.quiz)===q.ok){feedback("Bon repons!");points(5);}else feedback("Pa fwa sa a. Eseye lòt jwèt!");$("#quizAnswers").querySelectorAll("button").forEach(x=>x.disabled=true);});}
+ if(id==="tic"){let board=Array(9).fill(""),over=false;const draw=()=>{$("#ticGrid").innerHTML=board.map((v,i)=>`<button class="tic-cell" data-cell="${i}">${v}</button>`).join("");$("#ticGrid").querySelectorAll("[data-cell]").forEach(b=>b.onclick=()=>move(Number(b.dataset.cell)));};const win=b=>[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(line=>line.every(i=>b[i]&&b[i]===b[line[0]]));function move(i){if(over||board[i])return;board[i]="X";if(win(board)){over=true;feedback("Ou genyen! +10 pwen.");points(10);draw();return;}if(board.every(Boolean)){over=true;feedback("Match egal.");draw();return;}let avail=board.map((v,j)=>v?null:j).filter(v=>v!==null);board[avail[Math.floor(Math.random()*avail.length)]]="O";if(win(board)){over=true;feedback("Òdinatè a genyen. Eseye ankò.");}else if(board.every(Boolean)){over=true;feedback("Match egal.");}draw();}draw();$("#resetTic").onclick=()=>{board=Array(9).fill("");over=false;feedback("Nouvo match.");draw();};}
+ if(id==="word"){const word=["BONJOU","AYITI","ZANMI"][Math.floor(Math.random()*3)];let used=[],tries=6;const draw=()=>{$("#wordLetters").innerHTML=[...word].map(c=>`<span class="letter-box">${used.includes(c)||tries<=0?c:"_"}</span>`).join("");$("#wordTries").textContent=`Esè rete: ${tries}`;};draw();$("#guessLetter").onclick=()=>{const c=String($("#wordGuess").value||"").trim().toUpperCase().slice(0,1);$("#wordGuess").value="";if(!c)return;if(used.includes(c)){feedback("Ou deja eseye lèt sa a.");return;}used.push(c);if(!word.includes(c))tries--;draw();if([...word].every(x=>used.includes(x))){feedback(`Bravo! Mo a se ${word}.`);points(8);$("#guessLetter").disabled=true;}else if(tries<=0){feedback(`Esè yo fini. Mo a se ${word}.`);$("#guessLetter").disabled=true;}else feedback(word.includes(c)?"Bon lèt!":"Lèt sa a pa ladan l.");};}
+ if(id==="rps")document.querySelectorAll("[data-rps]").forEach(b=>b.onclick=()=>{const me=b.dataset.rps,opts=["rock","paper","scissors"],cpu=opts[Math.floor(Math.random()*3)],names={rock:"Wòch",paper:"Papye",scissors:"Sizo"};let result=me===cpu?"Match egal.":((me==="rock"&&cpu==="scissors")||(me==="paper"&&cpu==="rock")||(me==="scissors"&&cpu==="paper"))?"Ou genyen! +3 pwen.":"Òdinatè a genyen.";$("#rpsResult").textContent=`Ou: ${names[me]} · Òdinatè: ${names[cpu]} — ${result}`;if(result.startsWith("Ou genyen"))points(3);});
+ if(id==="daily")document.querySelectorAll("[data-daily]").forEach(b=>b.onclick=()=>{if(b.dataset.daily==="7"){feedback("Bravo! Defi jodi a fini.");points(5);}else feedback("Eseye ankò.");document.querySelectorAll("[data-daily]").forEach(x=>x.disabled=true);});
+ if(id==="cards"){const vals=[0,5,10].sort(()=>Math.random()-.5);document.querySelectorAll("[data-card]").forEach(b=>b.onclick=()=>{const v=vals[Number(b.dataset.card)];$("#cardResult").textContent=`Kat ou a bay ${v} pwen.`;if(v)points(v);document.querySelectorAll("[data-card]").forEach(x=>x.disabled=true);});}
+ if(id==="boxes"){const vals=[0,5,10].sort(()=>Math.random()-.5);document.querySelectorAll("[data-box]").forEach(b=>b.onclick=()=>{const v=vals[Number(b.dataset.box)];$("#boxResult").textContent=v?`Sipriz! Ou jwenn ${v} pwen.`:"Bwat sa a vid. Eseye yon lòt fwa pita.";if(v)points(v);document.querySelectorAll("[data-box]").forEach(x=>x.disabled=true);});}
+ if(id==="hidden"){$("#hiddenFind").onclick=()=>{feedback("Byen jwenn! 🍏 se 4yèm emoji a.");points(5);$("#hiddenFind").disabled=true;};$("#hiddenSkip").onclick=()=>feedback("Repons lan se 4yèm emoji a: 🍏.");}
+ if(id==="riddle")document.querySelectorAll("[data-riddle]").forEach(b=>b.onclick=()=>{if(b.dataset.riddle==="clock"){feedback("Bon repons! +5 pwen.");points(5);}else feedback("Pa sa. Repons lan se revèy.");document.querySelectorAll("[data-riddle]").forEach(x=>x.disabled=true);});
+ if(id==="race"){let timer=null,remaining=10;$("#startRace").onclick=()=>{if(timer)clearInterval(timer);remaining=10;$("#raceTimer").textContent=remaining;timer=setInterval(()=>{remaining--;$("#raceTimer").textContent=remaining;if(remaining<=0){clearInterval(timer);timer=null;feedback("Tan fini! Klike Kòmanse pou eseye ankò.");}},1000);};document.querySelectorAll("[data-race]").forEach(b=>b.onclick=()=>{if(!timer){feedback("Kòmanse revèy la anvan ou reponn.");return;}clearInterval(timer);timer=null;if(b.dataset.race==="42"){feedback("Bon repons anvan tan fini! +10 pwen.");points(10);}else feedback("Move repons. Eseye ankò.");});}
+ if(id==="friends"){$("#friendDone").onclick=()=>{feedback("Defi a make kòm fini sou aparèy sa a.");points(3);$("#friendDone").disabled=true;};$("#friendCopy").onclick=async()=>{const msg="Defi BOUSPAM: Ki bagay ou ta aprann si ou te gen yon jou lib?";try{await navigator.clipboard.writeText(msg);feedback("Defi a kopye. Voye l bay zanmi ou.");}catch(_){feedback(msg);}};}
 }
-/* Kopye lyen referans lan */
-$("#copyReferralBtn")?.addEventListener("click", async () => {
-  const input = $("#referralLink");
-  const message = $("#referralMessage");
-  if (!input || !input.value) {
-    toast("Lyen referans lan poko disponib.");
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(input.value);
-  } catch (_) {
-    input.focus();
-    input.select();
-    const copied = document.execCommand("copy");
-    if (!copied) {
-      toast("Seleksyone lyen an epi kopye li manyèlman.");
-      return;
-    }
-  }
-  if (message) {
-    message.textContent = "Lyen an kopye! Ou kapab pataje li.";
-  }
-  toast("Lyen referans lan kopye avèk siksè!");
-});
-/* Enskripsyon */
-$("#registerForm")?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!db) {
-    toast("Koneksyon Supabase pa pare. Verifye supabase-config.js.");
-    return;
-  }
-  const form = new FormData(event.target);
-  const name = String(form.get("name") || "").trim();
-  const email = String(form.get("email") || "").trim();
-  const password = String(form.get("password") || "");
-  const phone = String(form.get("phone") || "").trim();
-  /*
-   * Lyen ki nan URL la gen priyorite.
-   * Si pa gen lyen, nou gade kòd oswa lyen ki nan chan referans lan.
-   */
-  const params = new URLSearchParams(window.location.search);
-  const urlReferrer = extractReferrerId(params.get("ref"));
-  const formReferrer = extractReferrerId(form.get("referral"));
-  const userMetadata = {
-    full_name: name,
-    phone
-  };
-  const referrerId = urlReferrer || formReferrer;
-  if (referrerId) {
-    userMetadata.referrer_id = referrerId;
-  }
-  const submitButton = event.target.querySelector(
-    'button[type="submit"]'
-  );
-  if (submitButton) submitButton.disabled = true;
-  try {
-    const { data, error } = await db.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userMetadata
-      }
-    });
-    if (error) {
-      toast("Enskripsyon pa reyisi: " + error.message);
-      return;
-    }
-    if (data.session && data.user) {
-      await processReferral(data.user);
-      await loadDashboard(data.user);
-      toast("Kont ou kreye epi ou konekte.");
-    } else {
-      toast(
-        "Kont la kreye. Verifye imèl ou anvan ou konekte si yo mande sa."
-      );
-      event.target.reset();
-      showPanel("login");
-    }
-  } catch (error) {
-    console.error("Erè enskripsyon:", error);
-    toast("Yon erè rive pandan enskripsyon an. Eseye ankò.");
-  } finally {
-    if (submitButton) submitButton.disabled = false;
-  }
-});
-/* Koneksyon */
-$("#loginForm")?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!db) {
-    toast("Koneksyon Supabase pa pare.");
-    return;
-  }
-  const form = new FormData(event.target);
-  const email = String(form.get("email") || "").trim();
-  const password = String(form.get("password") || "");
-  const submitButton = event.target.querySelector(
-    'button[type="submit"]'
-  );
-  if (submitButton) submitButton.disabled = true;
-  try {
-    const { data, error } = await db.auth.signInWithPassword({
-      email,
-      password
-    });
-    if (error) {
-      toast("Koneksyon pa reyisi: " + error.message);
-      return;
-    }
-    await processReferral(data.user);
-    await loadDashboard(data.user);
-    toast("Ou konekte sou BOUSPAM.");
-  } catch (error) {
-    console.error("Erè koneksyon:", error);
-    toast("Yon erè rive pandan koneksyon an.");
-  } finally {
-    if (submitButton) submitButton.disabled = false;
-  }
-});
-/* Dekoneksyon */
-$("#logout")?.addEventListener("click", async () => {
-  if (db) {
-    const { error } = await db.auth.signOut();
-    if (error) {
-      toast("Nou pa kapab dekonekte kounye a.");
-      return;
-    }
-  }
-  setSignedOutView();
-  toast("Ou dekonekte.");
-});
-/* Peman aktivasyon: rete dezaktive jiskaske verifikasyon reyèl pare */
-$("#activateBtn")?.addEventListener("click", () => {
-  toast(
-    "Peman 500 HTG poko aktive. Pa voye lajan jiskaske peman ofisyèl ak verifikasyon yo konekte."
-  );
-});
-/* Retrè: rete dezaktive jiskaske validasyon sou sèvè pare */
-$("#withdrawBtn")?.addEventListener("click", () => {
-  toast(
-    "Retrè minimòm 255 HTG poko aktive. Sistèm nan bezwen validasyon sou sèvè ak entegrasyon peman ofisyèl."
-  );
-});
-/* Lang */
-$("#langBtn")?.addEventListener("click", () => {
-  toast("Vèsyon sa a an kreyòl. Fransè ak anglè ap ajoute pita.");
-});
-/* Retabli sesyon an lè paj la louvri */
-(async () => {
-  if (!db) {
-    toast("Konfigirasyon Supabase pa chaje.");
-    return;
-  }
-  const { data, error } = await db.auth.getSession();
-  if (error) {
-    console.error("Erè sesyon:", error.message);
-    return;
-  }
-  if (data.session) {
-    await loadDashboard(data.session.user);
-  }
-})();
+document.querySelectorAll("[data-wallet-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-wallet-tab]").forEach(x=>x.classList.toggle("active",x===b));const copy={all:"Konekte pou wè tout tranzaksyon verifye yo.",deposit:"Depo reyèl poko aktive. Pa voye lajan jiskaske entegrasyon ofisyèl la teste.",withdraw:"Retrè reyèl poko aktive. Nou pral mete l apre jwèt yo fin pare.",referral:"Règ referans BOUSPAM: chak 2 referans valide = 255 HTG total. Konekte pou wè lyen pèsonèl ou."};$("#walletTabContent").textContent=copy[b.dataset.walletTab];if(b.dataset.walletTab==="referral")$("#referralSection")?.scrollIntoView({behavior:"smooth",block:"center"});}));
+document.querySelectorAll("[data-bottom-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-wallet-tab]").forEach(x=>x.classList.toggle("active",x.dataset.walletTab==="referral"));$("#walletTabContent").textContent="Règ referans: chak 2 referans valide = 255 HTG total. Konekte pou wè lyen pèsonèl ou.";}));
+document.querySelectorAll(".bottom-link").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".bottom-link").forEach(x=>x.classList.toggle("active",x===b));if(b.hasAttribute("data-account-link")){$("#accountSection").classList.remove("hidden");$("#accountSummary").textContent=currentUser?(currentUser.user_metadata?.full_name||currentUser.email||"Manm BOUSPAM"):"Konekte pou wè enfòmasyon kont ou.";}if(b.getAttribute("href")==="#supportSection")$("#supportSection").classList.remove("hidden");}));
+renderGames();
+(async()=>{if(!db){toast("Konfigirasyon Supabase pa chaje. Jwèt yo disponib, men koneksyon kont lan pa pare.");return;}const {data,error}=await db.auth.getSession();if(error){console.error("Erè sesyon:",error.message);return;}if(data.session)await loadDashboard(data.session.user);})();
