@@ -1,0 +1,43 @@
+/* BOUSPAM roulette visual fix — ajoutez ce bloc à la FIN du fichier style.css existant. */
+.roulette-wheel {
+  width: min(72vw, 260px);
+  aspect-ratio: 1 / 1;
+  margin: 20px auto;
+  border-radius: 50%;
+  border: 8px solid #fff;
+  box-shadow: 0 0 0 4px #0b65d8, 0 8px 24px rgba(0,0,0,.22);
+  background: conic-gradient(
+    #ffcc33 0deg 45deg,
+    #0b65d8 45deg 90deg,
+    #21b573 90deg 135deg,
+    #ed4c67 135deg 180deg,
+    #7b61ff 180deg 225deg,
+    #ff8a26 225deg 270deg,
+    #18a7a1 270deg 315deg,
+    #e94e9a 315deg 360deg
+  );
+  position: relative;
+  transform: rotate(0deg);
+}
+.roulette-wheel::before {
+  content: "BOUSPAM";
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%; aspect-ratio: 1 / 1;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: #fff; color: #0b65d8;
+  font-size: clamp(9px, 2.5vw, 13px); font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.roulette-wheel.spinning {
+  animation: bouspam-wheel-spin 4s cubic-bezier(.12,.72,.12,1) forwards;
+}
+@keyframes bouspam-wheel-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(var(--spin-angle, 1800deg)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roulette-wheel.spinning { animation-duration: 1.2s; }
+}
