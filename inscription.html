@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ht">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b65d8">
+  <meta name="description" content="Kreye kont BOUSPAM ou an sekirite.">
+  <title>BOUSPAM — Kreye kont</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .community-signup{width:min(100%,560px);margin:18px auto 0;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;background:#eff8ff;border:1px solid #c8e5ff;border-radius:18px;box-shadow:0 8px 24px rgba(11,101,216,.07)}
+    .community-signup-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#d9fbe8;font-size:25px}
+    .community-signup-copy h2{margin:0 0 5px;color:#12457b;font-size:1rem}
+    .community-signup-copy p{margin:0;color:#47627b;font-size:.9rem;line-height:1.45}
+    .community-signup-btn{grid-column:1/-1;display:flex;justify-content:center;align-items:center;min-height:46px;background:#128c4a;color:#fff;border-radius:12px;text-decoration:none;font-weight:700;padding:12px 16px}
+    .community-signup-btn:hover{filter:brightness(.96)}
+    @media(max-width:420px){.community-signup{padding:14px;gap:10px}.community-signup-icon{width:40px;height:40px}}
+  </style>
+</head>
+<body class="auth-page">
+  <header class="topbar">
+    <a class="brand brand-link" href="index.html" aria-label="Retounen nan BOUSPAM">
+      <img src="9EF1090D-9D52-4783-803F-0A0095A4185F.png" alt="Logo BOUSPAM">
+      <div><small>Bous ou, nan men ou</small></div>
+    </a>
+    <button id="langBtn" class="lang-btn" aria-label="Chanje lang">HT ▾</button>
+  </header>
+  <main class="auth-main">
+    <a class="back-link" href="index.html">← Retounen nan paj dakèy la</a>
+    <section id="register" class="form-panel auth-card">
+      <div class="auth-intro"><span class="eyebrow">KÒMANSE KOUNYE A</span><h1 class="auth-title">Kreye kont BOUSPAM ou</h1><p>Ranpli enfòmasyon ki anba yo pou kòmanse.</p></div>
+      <form id="registerForm">
+        <label>Non konplè<input name="name" required autocomplete="name" placeholder="Antre non ou"></label>
+        <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="ou@example.com"></label>
+        <label>Nimewo telefòn (+509, opsyonèl)<input name="phone" inputmode="tel" autocomplete="tel" placeholder="509XXXXXXXX"></label>
+        <label>Modpas (omwen 8 karaktè)<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Kreye yon modpas solid"></label>
+        <label>Kòd referans (si ou genyen)<input name="referral" id="referralCode" placeholder="Kòd referans"></label>
+        <button class="btn primary full" type="submit">Kreye kont</button>
+        <p class="form-note">Enskripsyon an itilize Supabase. Si yo mande verifikasyon, verifye imèl ou anvan ou konekte.</p>
+      </form>
+      <p class="auth-switch">Ou deja gen kont? <a href="index.html?open=login">Konekte isit la</a></p>
+    </section>
+
+    <section class="community-signup" aria-label="Gwoup WhatsApp BOUSPAM">
+      <div class="community-signup-icon" aria-hidden="true">💬</div>
+      <div class="community-signup-copy">
+        <h2>Rete konekte ak BOUSPAM</h2>
+        <p>Antre nan gwoup WhatsApp ofisyèl kominote a pou resevwa nouvèl ak enfòmasyon sou BOUSPAM.</p>
+      </div>
+      <a class="btn community-signup-btn" href="https://chat.whatsapp.com/GeUmA1RwVjfGuU44iRMWtM?mode=gi_t" target="_blank" rel="noopener noreferrer">Antre nan gwoup WhatsApp ↗</a>
+    </section>
+
+    <div class="auth-assurance"><span>🔒</span><span>Pwoteje enfòmasyon ou. Pa pataje modpas ou ak pèsonn.</span></div>
+  </main>
+  <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

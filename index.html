@@ -5,68 +5,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b65d8">
   <meta name="description" content="BOUSPAM — Bous ou, nan men ou.">
-  <title>BOUSPAM — Akèy</title>
+  <title>BOUSPAM — Konekte ak bous ou</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="pages.css">
-  <link rel="stylesheet" href="bouspam-4pages.css">
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="index.html" aria-label="BOUSPAM Akèy">
-    <img alt="Logo BOUSPAM" src="9EF1090D-9D52-4783-803F-0A0095A4185F.png">
-    <span><small>Bous ou, nan men ou</small></span>
-  </a>
-  <button aria-label="Chanje lang" class="lang-btn" id="langBtn">HT ▾</button>
-</header>
-
-<main class="page-shell home-page">
-  <div class="page-kicker">BOUSPAM · BOUS OU, NAN MEN OU</div>
-  <section class="welcome" id="welcome">
-    <div class="hero-copy">
-      <span class="eyebrow">BYENVINI SOU BOUSPAM</span>
-      <h1>Kontwòl lajan w<br><span>nan men ou.</span></h1>
-      <p>Kreye kont ou, swiv aktivite ou, pataje lyen referans ou epi dekouvri jwèt BOUSPAM yo nan yon espas ki senp epi byen òganize.</p>
-      <div class="hero-actions">
-        <a class="btn primary" href="compte.html#register">Kreye kont</a>
-        <a class="btn outline" href="compte.html#login">Konekte</a>
+  <header class="topbar">
+    <div class="brand">
+      <img src="9EF1090D-9D52-4783-803F-0A0095A4185F.png" alt="Logo BOUSPAM" style="width:150px;height:65px;object-fit:contain;">
+      <div><small>Bous ou, nan men ou</small></div>
+    </div>
+    <button id="langBtn" class="lang-btn" aria-label="Chanje lang">HT ▾</button>
+  </header>
+  <main>
+    <section id="welcome" class="welcome">
+      <div class="hero-copy">
+        <span class="eyebrow">BOUSPAM · Bous ou, nan men ou</span>
+        <h1>Jere lajan w<br><span>pi fasil.</span></h1>
+        <p>Yon espas senp pou jere kont ou epi swiv aktivite BOUSPAM yo.</p>
+        <div class="hero-actions">
+          <a class="btn primary" data-create-account href="inscription.html">Kreye kont</a>
+          <button class="btn outline" data-open="login">Konekte</button>
+        </div>
       </div>
-      <div class="home-trust"><span>🔐 Kont pèsonèl</span><span>💳 Bous ak tranzaksyon</span><span>🎮 13 jwèt</span></div>
-    </div>
-    <div class="hero-card">
-      <div class="card-top"><span>Bous BOUSPAM</span><span class="live-dot">●</span></div>
-      <div class="fake-balance">0.00 <small>HTG</small></div>
-      <div class="card-bottom"><span>Bous ou, kontwòl ou</span><span>💙</span></div>
-    </div>
-  </section>
+      <div class="hero-card">
+        <div class="card-top"><span>Balans BOUSPAM</span><span class="live-dot">●</span></div>
+        <div class="fake-balance">••••• <small>HTG</small></div>
+        <div class="card-bottom"><span>Kont ou, kontwòl ou</span><span>💙</span></div>
+      </div>
+    </section>
+    <section class="features compact-features" aria-label="Avantaj BOUSPAM">
+      <article><span class="feature-icon">🔐</span><h3>Sekirite</h3><p>Kont pèsonèl ou.</p></article>
+      <article><span class="feature-icon">💳</span><h3>Bous dijital</h3><p>Swiv enfòmasyon kont ou.</p></article>
+      <article><span class="feature-icon">🤝</span><h3>Referans</h3><p>Envite zanmi w.</p></article>
+    </section>
+    <section id="login" class="form-panel hidden">
+      <div class="panel-heading"><div><span class="eyebrow">BON RETOU</span><h2>Konekte sou kont ou</h2></div><button class="close" data-close aria-label="Fèmen">×</button></div>
+      <form id="loginForm">
+        <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="Imèl kont ou"></label>
+        <label>Modpas<input name="password" type="password" required autocomplete="current-password" placeholder="Modpas ou"></label>
+        <button class="btn primary full" type="submit">Konekte</button>
+        <p class="form-note">Koneksyon sekirize ak kont BOUSPAM ou.</p><p class="auth-switch">Ou poko gen kont? <a href="inscription.html">Kreye yon kont</a></p>
+      </form>
+    </section>
+    <section id="dashboard" class="dashboard hidden">
+      <div class="dash-heading"><div><span class="eyebrow">ESPAS OU</span><h2>Bonjou, <span id="userName">zanmi</span> 👋</h2></div><button id="logout" class="btn outline">Dekonekte</button></div>
+      <div class="balance-card">
+        <span>Balans disponib</span><strong id="balance">0.00 <small>HTG</small></strong>
+        <span class="muted">Balans ki soti nan bazdone a; li pa reprezante lajan reyèl jiskaske peman verifye.</span>
+      </div>
+      <div class="dash-actions"><button class="btn primary" id="activateBtn">Aktive kont · 500 HTG</button><button class="btn outline" id="withdrawBtn">Mande retrè</button></div>
+      <div class="notice"><b>NatCash:</b> Entegrasyon peman an poko aktive. Pa gen tranzaksyon reyèl ki fèt nan vèsyon sa a.</div>
+      <section id="referralSection" class="referral-card">
+        <h3>🔗 Envite zanmi ou</h3>
+        <p>Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM.</p>
+        <label for="referralLink">Lyen referans pèsonèl ou</label>
+        <div class="referral-link-row"><input id="referralLink" type="text" readonly placeholder="Lyen referans ou ap parèt la"><button id="copyReferralBtn" class="btn primary" type="button">Kopye lyen an</button></div>
+        <p id="referralMessage" class="muted" role="status">Konekte pou jwenn lyen referans pèsonèl ou.</p>
+        <div class="notice">💰 Règ referans ki dwe aplike: chak 2 referans valide = 255 HTG total. Peman sa a poko konekte.</div>
+      </section>
 
-  <section class="features">
-    <article><span class="feature-icon">💳</span><h3>Aktivasyon</h3><p>Frè aktivasyon kont lan: <b>500 HTG</b>. Peman dwe verifye anvan kont lan aktive.</p></article>
-    <article><span class="feature-icon">👥</span><h3>Referans</h3><p><b>255 HTG pou chak 2 referans valide</b>. Se kont aktif sèlman ki konte.</p></article>
-    <article><span class="feature-icon">🔐</span><h3>Sekirite</h3><p>Balans ak tranzaksyon dwe soti nan bazdone a; pwen jwèt yo pa lajan reyèl.</p></article>
-  </section>
+      <!-- 13 Jwèt BOUSPAM: vèsyon pwen sèlman, san lajan reyèl -->
+      <section id="gamesSection" class="games-section">
+        <div class="games-heading">
+          <div><span class="eyebrow">PLEZI AK DEFI</span><h2>🎮 Jwèt BOUSPAM</h2><p>Jwe, fè defi, epi ranmase pwen jwèt.</p></div>
+          <div class="points-pill">⭐ <span id="gamePoints">0</span> pwen</div>
+        </div>
+        <div class="games-warning">Pwen sa yo se pwen jwèt sèlman. Yo pa HTG, yo pa ka retire, epi yo pa konekte ak bous la nan vèsyon sa a.</div>
+        <div id="gamesGrid" class="games-grid">
+          <button class="game-card" data-game="roulette"><span>🎡</span><b>Woulet BOUSPAM</b><small>Vire pou genyen pwen</small></button>
+          <button class="game-card" data-game="number"><span>🎯</span><b>Devinèt nimewo</b><small>Devine nimewo a</small></button>
+          <button class="game-card" data-game="quiz"><span>🧠</span><b>Kesyon entèlijans</b><small>Teste konesans ou</small></button>
+          <button class="game-card" data-game="tictactoe"><span>❌⭕</span><b>Tic-Tac-Toe</b><small>Jwe kont òdinatè</small></button>
+          <button class="game-card" data-game="word"><span>🔤</span><b>Devinèt mo</b><small>Devine mo a</small></button>
+          <button class="game-card" data-game="rps"><span>🪨</span><b>Wòch, papye, sizo</b><small>Defi òdinatè a</small></button>
+          <button class="game-card" data-game="daily"><span>🏆</span><b>Defi chak jou</b><small>Yon defi pa jou</small></button>
+          <button class="game-card" data-game="cards"><span>🃏</span><b>Kat mistè</b><small>Chwazi yon kat</small></button>
+          <button class="game-card" data-game="box"><span>🎁</span><b>Bwat sipriz</b><small>Ouvri yon bwat</small></button>
+          <button class="game-card" data-game="hidden"><span>🔎</span><b>Chèche objè kache</b><small>Jwenn senbòl la</small></button>
+          <button class="game-card" data-game="riddle"><span>🧩</span><b>Devinèt rapid</b><small>Rezoud devinèt la</small></button>
+          <button class="game-card" data-game="race"><span>⏱️</span><b>Kous kont tan</b><small>Reponn vit</small></button>
+          <button class="game-card" data-game="friends"><span>👥</span><b>Defi ant zanmi</b><small>Kreye yon defi</small></button>
+        </div>
+        <div id="gamePlay" class="game-play hidden" aria-live="polite">
+          <div class="game-play-head"><h3 id="gameTitle">Jwèt</h3><button id="closeGame" class="close" type="button" aria-label="Fèmen jwèt la">×</button></div>
+          <div id="gameBody"></div>
+          <p id="gameFeedback" class="game-feedback" role="status"></p>
+        </div>
+      </section>
 
-  <section class="four-page-grid" aria-label="Espas BOUSPAM">
-    <a class="quick-card" href="compte.html"><span>👤</span><b>Kont manm</b><small>Enskripsyon, koneksyon, referans ak sipò</small></a>
-    <a class="quick-card" href="jeux.html"><span>🎮</span><b>Jwèt BOUSPAM</b><small>Jwe epi swiv pwen demonstrasyon yo</small></a>
-    <a class="quick-card" href="bous.html"><span>💰</span><b>Bous mwen</b><small>Balans, depo, retrè ak istwa tranzaksyon</small></a>
-    <a class="quick-card" href="compte.html#referralSection"><span>🔗</span><b>Envite zanmi</b><small>Pataje lyen referans pèsonèl ou</small></a>
-  </section>
-
-  <p class="safety-note">Nòt: Peman NatCash, aktivasyon ak retrè pa dwe prezante kòm operasyon reyèl jiskaske verifikasyon ak entegrasyon ofisyèl yo fin aktive.</p>
-</main>
-
-<img src="FC9C424D-6D0D-4A51-87EA-7899001F3511.png" alt="BOUSPAM" class="footer-art">
-<footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
-
-<nav class="bottom-nav bouspam-nav" aria-label="Navigasyon prensipal">
-  <a class="bottom-link active" href="index.html"><span>⌂</span><small>Akèy</small></a>
-  <a class="bottom-link" href="compte.html"><span>👤</span><small>Kont</small></a>
-  <a class="bottom-link" href="jeux.html"><span>🎮</span><small>Jwèt</small></a>
-  <a class="bottom-link" href="bous.html"><span>💰</span><small>Bous</small></a>
-</nav>
-<div class="toast" id="toast" role="status"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="app.js"></script>
+      <h3>Dènye aktivite</h3><div id="activity" class="activity empty">Pa gen tranzaksyon pou kounye a.</div>
+    </section>
+  </main>
+  <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
