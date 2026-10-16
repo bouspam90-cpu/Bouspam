@@ -169,7 +169,6 @@ const LANGUAGE_SELECTORS = {
   "available balance":".balance-card > span:first-child",
   "activate":"#activateBtn",
   "withdraw":"#withdrawBtn",
-  "natcash notice":"#dashboard > .notice",
   "invite title":"#referralSection h3",
   "invite desc":"#referralSection > p",
    "copy link":"#copyReferralBtn",
@@ -359,6 +358,12 @@ async function processReferral(user) {
 async function loadDashboard(user) {
   if (!db || !user) return;
   currentUser = user;
+  // The site is split into home, games and account pages. On the games page,
+  // load the authenticated user's daily points without requiring account DOM.
+  if (!$("#dashboard")) {
+    if (typeof initGamesForUser === "function") await initGamesForUser(user.id);
+    return;
+  }
   panels.forEach((p) => $("#" + p)?.classList.add("hidden"));
   $("#welcome")?.classList.add("hidden");
   $(".features")?.classList.add("hidden");
@@ -366,32 +371,33 @@ async function loadDashboard(user) {
   $("#dashboard")?.classList.remove("hidden");
   const meta = user.user_metadata || {};
   if ($("#userName")) $("#userName").textContent = meta.full_name || user.email || "zanmi";
-  $("#balance").innerHTML = '— <small>HTG</small>';
-  $("#activity").textContent = "Ap chaje aktivite…";
+  if ($("#balance")) $("#balance").innerHTML = '— <small>HTG</small>';
+  if ($("#activity")) $("#activity").textContent = "Ap chaje aktivite…";
   const { data: profile, error: profileError } = await db.from("profiles").select("is_activated").eq("id", user.id).maybeSingle();
   const isActivated = !profileError && profile !== null && profile.is_activated === true;
+  if ($("#activationPaymentForm")) $("#activationPaymentForm").classList.toggle("hidden", isActivated);
   updateReferralLink(user, isActivated);
   const { data: wallet, error: walletError } = await db.from("wallets").select("balance,currency").eq("user_id", user.id).maybeSingle();
   if (walletError) {
-    $("#balance").innerHTML = '0.00 <small>HTG</small>';
-    $("#activity").textContent = "Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo nan Supabase.";
+    if ($("#balance")) $("#balance").innerHTML = '0.00 <small>HTG</small>';
+    if ($("#activity")) $("#activity").textContent = "Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo nan Supabase.";
   } else if (wallet) {
-    $("#balance").innerHTML = `${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency || "HTG")}</small>`;
+    if ($("#balance")) $("#balance").innerHTML = `${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency || "HTG")}</small>`;
   }
   const { data: transactions, error: transactionError } = await db.from("transactions").select("type,amount,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10);
   if (!transactionError && transactions && transactions.length > 0) {
-    $("#activity").classList.remove("empty");
-    $("#activity").innerHTML = transactions.map((transaction) => `
+    $("#activity")?.classList.remove("empty");
+    if ($("#activity")) $("#activity").innerHTML = transactions.map((transaction) => `
       <div class="activity-row"><b>${escapeHtml(transaction.type)}</b> · ${Number(transaction.amount).toFixed(2)} HTG · ${escapeHtml(transaction.status)}
       <small>${new Date(transaction.created_at).toLocaleString()}</small></div>`).join("");
   } else if (!transactionError) {
-    $("#activity").textContent = "Pa gen tranzaksyon verifye pou kounye a.";
+    if ($("#activity")) $("#activity").textContent = "Pa gen tranzaksyon verifye pou kounye a.";
   } else if (!walletError) {
-    $("#activity").textContent = "Bous la chaje. Istwa tranzaksyon an poko disponib.";
+    if ($("#activity")) $("#activity").textContent = "Bous la chaje. Istwa tranzaksyon an poko disponib.";
   }
-  $("#dashboard").scrollIntoView({ behavior: "smooth", block: "start" });
-  initGamesForUser(user.id);
-  await refreshUserTransactions();
+  $("#dashboard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  await initGamesForUser(user.id);
+  await loadMoneyPanels(user.id);
   await loadAdminPanel();
 }
 $("#copyReferralBtn")?.addEventListener("click", async () => {
@@ -486,31 +492,87 @@ $("#logout")?.addEventListener("click", async () => {
   }
   setSignedOutView(); toast("Ou dekonekte.");
 });
-async function submitMoneyRequest(type, amount, reference) {
-  if (!db || !currentUser) { toast("Konekte anvan ou fè demann sa a."); return; }
-  const {error}=await db.rpc("bouspam_create_money_request",{p_request_type:type,p_amount:Number(amount),p_reference:String(reference||"").trim()});
-  if(error){console.error(error);toast("Demann nan pa pase: "+(error.message||"erè bazdone"));return;}
-  toast("Demann nan anrejistre epi li annatant verifikasyon.");
-  if(type==="deposit")$("#depositForm")?.reset(); if(type==="withdrawal")$("#withdrawForm")?.reset();
-  await refreshUserTransactions(); await loadAdminPanel();
+$("#activateBtn")?.addEventListener("click", () => { const d=$("#financeDetails"); if(d)d.open=true; $("#activationPaymentForm")?.scrollIntoView({behavior:"smooth",block:"center"}); });
+$("#withdrawBtn")?.addEventListener("click", () => { const d=$("#financeDetails"); if(d)d.open=true; $("#withdrawalForm")?.scrollIntoView({behavior:"smooth",block:"center"}); });
+
+/* ----------------- Bous: demann ki rete annatant jiskaske admin verifye ----------------- */
+function moneyStatusLabel(value) {
+  return ({pending:"An atant verifikasyon",completed:"Konplete",rejected:"Rejte",approved:"Apwouve"})[String(value||"").toLowerCase()] || String(value||"—");
 }
-$("#activateBtn")?.addEventListener("click", async () => {
-  if(!currentUser){toast("Konekte anvan ou aktive kont ou.");return;}
-  const reference=window.prompt("Apre ou fin peye 500 HTG nan NatCash ofisyèl BOUSPAM la, antre referans tranzaksyon an. Demann lan pa aktive kont otomatikman:");
-  if(reference===null)return; if(!reference.trim()){toast("Ou dwe antre referans NatCash la.");return;} await submitMoneyRequest("activation",500,reference);
+function moneyTypeLabel(value) {
+  return ({activation:"Aktivasyon kont",deposit:"Depo",withdrawal:"Retrè",referral_commission:"Komisyon referans"})[String(value||"")] || String(value||"Tranzaksyon");
+}
+let cachedUserTransactions = [];
+async function loadMoneyPanels(userId) {
+  if (!db || !userId) return;
+  const {data: publicSettings, error: settingsError} = await db.rpc("bouspam_public_site_settings");
+  if (!settingsError && publicSettings) {
+    const siteMessage = $("#siteMessage");
+    if (siteMessage) siteMessage.textContent = publicSettings.site_message || "";
+    const withdrawAmount = $("#withdrawalForm input[name='amount']");
+    if (withdrawAmount) withdrawAmount.min = String(Number(publicSettings.withdrawal_minimum || 255));
+    const withdrawText = $("#withdrawalForm h4");
+    if (withdrawText) withdrawText.textContent = "Retrè (minimòm " + Number(publicSettings.withdrawal_minimum || 255) + " HTG)";
+  }
+  const list = $("#transactionList");
+  if (list) list.textContent = "Ap chaje tranzaksyon…";
+  const {data: transactions, error: txError} = await db.from("transactions").select("id,type,amount,status,reference,created_at").eq("user_id", userId).order("created_at", {ascending:false}).limit(200);
+  if (txError) {
+    if (list) list.textContent = "Istwa a poko ka chaje. Verifye RLS/pèmisyon transactions nan Supabase.";
+    console.error(txError);
+  } else {
+    cachedUserTransactions = transactions || [];
+    renderUserTransactions();
+  }
+  const referrals = $("#myReferralList");
+  if (referrals) {
+    const {data, error} = await db.from("referrals").select("id,referred_id,status,commission_paid,created_at,validated_at").eq("referrer_id",userId).order("created_at",{ascending:false}).limit(200);
+    if (error) { referrals.textContent = "Lis referans lan poko ka chaje. Verifye RLS tab referrals la."; console.error(error); }
+    else if (!data?.length) referrals.textContent = "Ou poko gen referans anrejistre.";
+    else referrals.innerHTML = data.map(r=>`<div class="admin-row"><b>${adminText(r.status === "validated" ? "Referans valide" : r.status === "pending" ? "Referans annatant" : r.status)}</b><small>Manm: ${adminText(r.referred_id)} · Komisyon peye: ${r.commission_paid ? "Wi" : "Non"} · Dat: ${adminText(r.created_at || "—")}</small></div>`).join("");
+  }
+}
+function renderUserTransactions() {
+  const list = $("#transactionList"); if (!list) return;
+  const filter = $("#transactionFilter")?.value || "all";
+  const rows = cachedUserTransactions.filter(t=>filter === "all" || t.type === filter);
+  if (!rows.length) { list.textContent = "Pa gen tranzaksyon nan kategori sa a."; return; }
+  list.innerHTML = rows.map(t=>`<div class="admin-row"><b>${adminText(moneyTypeLabel(t.type))} · ${adminText(Number(t.amount).toFixed(2))} HTG</b><small>Estati: ${adminText(moneyStatusLabel(t.status))} · Referans: ${adminText(t.reference || "—")} · ${adminText(t.created_at || "")}</small></div>`).join("");
+}
+$("#transactionFilter")?.addEventListener("change", renderUserTransactions);
+async function submitMoneyRequest(form, type) {
+  if (!db || !currentUser) { toast("Konekte sou kont ou anvan ou fè demann."); return; }
+  const fd = new FormData(form);
+  const amount = type === "activation" ? 500 : Number(fd.get("amount"));
+  const reference = String(fd.get("reference") || "").trim();
+  const status = $("#moneyActionStatus");
+  const button = form.querySelector("button[type='submit']");
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ap voye demann lan…";
+  try {
+    const {data, error} = await db.rpc("bouspam_request_money_action", {p_type:type,p_amount:amount,p_reference:reference});
+    if (error) { if (status) status.textContent = error.message; toast("Demann lan pa pase. Verifye enfòmasyon yo."); return; }
+    form.reset();
+    if (status) status.textContent = "Demann lan anrejistre. Li rete AN ATANT jiskaske administratè a verifye li.";
+    toast("Demann lan anrejistre kòm annatant.");
+    await loadMoneyPanels(currentUser.id);
+  } catch (err) { console.error(err); if (status) status.textContent = "Erè rezo. Eseye ankò."; }
+  finally { if (button) button.disabled = false; }
+}
+$("#activationPaymentForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"activation");});
+$("#depositForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"deposit");});
+$("#withdrawalForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"withdrawal");});
+$("#saveSiteSettings")?.addEventListener("click", async ()=>{
+  const status=$("#adminSiteSettingsStatus");
+  if (!db || !currentUser) return;
+  status.textContent="Ap sove paramèt yo…";
+  const {data,error}=await db.rpc("bouspam_admin_save_site_settings",{p_withdrawal_minimum:Number($("#adminWithdrawalMinimum").value),p_site_message:String($("#adminSiteMessage").value||"").trim()});
+  if (error || data !== true) { status.textContent="Pa t kapab sove paramèt yo. Se administratè otorize a sèlman ki ka fè sa."; console.error(error); return; }
+  status.textContent="Paramèt yo sove. Frè aktivasyon an rete 500 HTG.";
+  toast("Paramèt sit la sove.");
+  await loadAdminPanel();
 });
-$("#depositBtn")?.addEventListener("click",()=>{ $("#depositForm")?.scrollIntoView({behavior:"smooth",block:"center"}); $("#depositForm input[name='amount']")?.focus(); });
-$("#withdrawBtn")?.addEventListener("click",()=>{ $("#withdrawForm")?.classList.toggle("hidden"); $("#withdrawForm")?.scrollIntoView({behavior:"smooth",block:"center"}); });
-$("#depositForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);await submitMoneyRequest("deposit",f.get("amount"),f.get("reference"));});
-$("#withdrawForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);await submitMoneyRequest("withdrawal",f.get("amount"),f.get("reference"));});
-async function refreshUserTransactions(){
-  if(!db||!currentUser)return; const filter=$("#transactionFilter")?.value||"all",box=$("#transactionList");if(!box)return;box.textContent="Ap chaje tranzaksyon yo…";
-  let q=db.from("transactions").select("type,amount,status,reference,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
-  if(filter==="deposit")q=q.in("type",["deposit","deposit_payment"]);if(filter==="withdrawal")q=q.in("type",["withdrawal","withdrawal_request"]);if(filter==="activation")q=q.in("type",["activation","activation_payment"]);if(filter==="referral")q=q.in("type",["referral_commission","referral"]);
-  const {data,error}=await q;if(error){box.textContent="Pa kapab chaje tranzaksyon yo. Verifye règ aksè Supabase yo.";console.error(error);return;}
-  box.innerHTML=data?.length?data.map(t=>adminRow(t.type,`${Number(t.amount).toFixed(2)} HTG · ${t.status} · ${t.created_at?new Date(t.created_at).toLocaleString():""}${t.reference?" · Ref: "+t.reference:""}`)).join(""):"Pa gen tranzaksyon nan kategori sa a.";
-}
-$("#transactionFilter")?.addEventListener("change",refreshUserTransactions);$("#refreshTransactions")?.addEventListener("click",refreshUserTransactions);
+
 $("#langBtn")?.addEventListener("click", cycleLanguage);
 applyLanguage(currentLanguage());
 
@@ -536,19 +598,28 @@ async function loadAdminPanel() {
   ].map(([label,value])=>`<div class="admin-stat"><b>${adminText(value ?? 0)}</b><span>${label}</span></div>`).join("");
   const settings = data.settings || {};
   $("#adminGamesEnabled").checked = settings.games_enabled !== false;
+  $("#adminActivationFee").value = Number(settings.activation_fee || 500);
+  $("#adminWithdrawalMinimum").value = Number(settings.withdrawal_minimum || 255);
+  $("#adminSiteMessage").value = settings.site_message || "";
   $("#adminMembers").innerHTML = (data.members || []).length ? data.members.map(m=>adminRow(m.full_name || m.username || m.id, (m.is_activated ? "Aktive" : "Pa aktive") + " · " + (m.created_at || ""))).join("") : "Pa gen manm pou montre.";
   $("#adminReferrals").innerHTML = (data.referrals || []).length ? data.referrals.map(r=>adminRow("Referans: " + r.id, "Manm envite: " + r.referred_id + " · Estati: " + r.status,
     r.status === "pending" ? `<button class="btn primary admin-validate-ref" data-referral="${adminText(r.id)}" type="button">Valide referans</button>` : "")).join("") : "Pa gen referans annatant.";
-  $("#adminTransactions").innerHTML = (data.transactions || []).length ? data.transactions.map(t=>adminRow(t.type + " · " + t.amount + " HTG", "Estati: " + t.status + " · " + (t.created_at || ""))).join("") : "Pa gen tranzaksyon pou montre.";
-  const reqs=data.payment_requests||[];
-  $("#adminPaymentRequests").innerHTML=reqs.length?reqs.map(r=>adminRow(`${r.request_type} · ${r.amount} HTG`,`Manm: ${r.user_id} · Referans/nimewo: ${r.reference||"—"} · Estati: ${r.status} · ${r.created_at||""}`,r.status==="pending"?`<div class="admin-actions"><button class="btn primary admin-review-request" data-id="${adminText(r.id)}" data-approve="true" type="button">Apwouve apre verifikasyon</button><button class="btn outline admin-review-request" data-id="${adminText(r.id)}" data-approve="false" type="button">Refize</button></div>`:"")).join(""):"Pa gen demann annatant.";
-  section.querySelectorAll(".admin-review-request").forEach(button=>button.addEventListener("click",async()=>{
-    const approve=button.dataset.approve==="true";const note=window.prompt(approve?"Verifye tranzaksyon an dirèkteman nan NatCash anvan apwobasyon. Nòt (opsyonèl):":"Rezon refi a:","");if(note===null)return;
-    if(approve&&!window.confirm("Èske ou verifye peman an nan NatCash, oswa ou voye retrè a deja?"))return;
-    button.disabled=true;const {error}=await db.rpc("bouspam_admin_review_money_request",{p_request_id:button.dataset.id,p_approve:approve,p_note:note});
-    if(error){console.error(error);toast("Aksyon an echwe: "+error.message);button.disabled=false;return;}toast(approve?"Demann apwouve.":"Demann refize.");await loadAdminPanel();await refreshUserTransactions();
+  $("#adminTransactions").innerHTML = (data.transactions || []).length ? data.transactions.map(t=>{
+    const details = "Manm: " + t.user_id + " · Estati: " + t.status + " · Referans: " + (t.reference || "—") + " · " + (t.created_at || "");
+    const actions = t.status === "pending" && ["activation","deposit","withdrawal"].includes(t.type)
+      ? `<div class="admin-action-row"><button class="btn primary admin-review-tx" data-id="${adminText(t.id)}" data-decision="approve" type="button">Apwouve / verifye</button><button class="btn outline admin-review-tx" data-id="${adminText(t.id)}" data-decision="reject" type="button">Rejte</button></div>` : "";
+    return adminRow(t.type + " · " + t.amount + " HTG", details, actions);
+  }).join("") : "Pa gen tranzaksyon pou montre.";
+  section.querySelectorAll(".admin-review-tx").forEach(button => button.addEventListener("click", async () => {
+    const decision = button.dataset.decision;
+    const promptText = decision === "approve" ? "Konfime ou verifye peman/retre sa a nan NatCash oswa nan dosye ki kòrèk la?" : "Ou vle rejte tranzaksyon sa a?";
+    if (!confirm(promptText)) return;
+    section.querySelectorAll(`.admin-review-tx[data-id="${button.dataset.id}"]`).forEach(b=>b.disabled=true);
+    const {data: reviewed, error: reviewError} = await db.rpc("bouspam_admin_review_transaction", {p_transaction_id: button.dataset.id, p_decision: decision});
+    if (reviewError || reviewed !== true) { toast("Nou pa t kapab trete tranzaksyon an: " + (reviewError?.message || "erè")); console.error(reviewError); await loadAdminPanel(); return; }
+    toast(decision === "approve" ? "Tranzaksyon apwouve. Verifye balans/manm nan." : "Tranzaksyon rejte.");
+    await loadAdminPanel();
   }));
-  if($("#adminPaymentNotice"))$("#adminPaymentNotice").value=settings.payment_notice||"Peman yo verifye manyèlman nan NatCash.";
   section.querySelectorAll(".admin-validate-ref").forEach(button => button.addEventListener("click", async () => {
     button.disabled = true; button.textContent = "Ap verifye…";
     const {error: validateError} = await db.rpc("validate_referral", {p_referral_id: button.dataset.referral});
@@ -557,7 +628,6 @@ async function loadAdminPanel() {
   }));
 }
 $("#refreshAdminBtn")?.addEventListener("click", loadAdminPanel);
-$("#saveSiteSettings")?.addEventListener("click",async()=>{const status=$("#adminSiteStatus");if(!db||!currentUser)return;status.textContent="Ap sove…";const {data,error}=await db.rpc("bouspam_admin_set_payment_notice",{p_notice:$("#adminPaymentNotice").value.trim()});if(error||data!==true){console.error(error);status.textContent="Pa t kapab sove. Kouri nouvo SQL la epi verifye dwa administratè a.";return;}status.textContent="Paramèt sit la sove.";});
 $("#saveGameSettings")?.addEventListener("click", async () => {
   const status = $("#adminGameStatus");
   if (!db || !currentUser) return;
@@ -573,11 +643,12 @@ $("#saveGameSettings")?.addEventListener("click", async () => {
   const { data, error } = await db.auth.getSession();
   if (error) { console.error("Erè sesyon:", error.message); return; }
   if (data.session) await loadDashboard(data.session.user);
+  else if ($("#gamesSection")) await initGamesForUser(null);
 })();
 
 /* ----------------- 13 JWÈT BOUSPAM: Pwen jwèt sèlman -----------------
-   Remak: vèsyon pwototip la sere pwen nan navigatè a. Pa sèvi ak pwen sa yo
-   pou peman oswa retrè; pou sa, fòk gen verifikasyon sou sèvè.
+   Pwen yo anrejistre sou Supabase pa award_daily_game_points; yo pa HTG
+   epi yo pa ka sèvi kòm lajan depo oswa retrè.
 */
 const gameCatalog = {
   roulette: "🎡 Woulet BOUSPAM", number: "🎯 Devinèt nimewo", quiz: "🧠 Kesyon entèlijans",
@@ -748,3 +819,9 @@ function showGame(id) {
 }
 document.querySelectorAll("[data-game]").forEach(button => button.addEventListener("click", () => showGame(button.dataset.game)));
 $("#closeGame")?.addEventListener("click", () => { if(raceTimer){clearInterval(raceTimer);raceTimer=null;} $("#gamePlay")?.classList.add("hidden"); });
+
+// Support direct links to account forms from the home page.
+if (location.pathname.endsWith("compte.html") && (location.hash === "#register" || location.hash === "#login")) {
+  const target = location.hash.slice(1);
+  setTimeout(() => showPanel(target), 50);
+}
