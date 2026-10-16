@@ -40,7 +40,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"NatCash: Entegrasyon peman an poko aktive. Pa gen tranzaksyon reyèl ki fèt nan vèsyon sa a.",
     "invite title":"🔗 Envite zanmi ou","invite desc":"Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM.",
     "referral link label":"Lyen referans pèsonèl ou","copy link":"Kopye lyen an",
-    "referral promo":"💰 Règ Referans: 255 HTG pu referans yo tout. Otan ou envite plis zanmi ki aktive, se plis kòb ou ka touche ak BOUSPAM!",
+    "referral promo":"🔗 Envite zanmi avèk lyen pèsonèl ou. Referans lan konte lè nouvo manm lan enskri epi aktive kont li.",
     "share referral":"📲 PATAJE LYEN REFERANS MWEN",
     "games eyebrow":"PLEZI AK DEFI","games title":"🎮 Jwèt BOUSPAM",
     "games desc":"Jwe, fè defi, epi ranmase pwen jwèt.",
@@ -82,7 +82,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"NatCash : l’intégration des paiements n’est pas encore activée. Aucune transaction réelle n’est effectuée dans cette version.",
     "invite title":"🔗 Invitez vos amis","invite desc":"Partagez votre lien de parrainage pour inviter de nouveaux membres sur BOUSPAM.",
     "referral link label":"Votre lien de parrainage personnel","copy link":"Copier le lien",
-    "referral promo":"💰 Règle de parrainage : 255 HTG pour les parrainages. Plus vous invitez d’amis dont le compte est activé, plus vous pouvez gagner avec BOUSPAM !",
+    "referral promo":"🔗 Invitez des amis avec votre lien personnel. Le parrainage est pris en compte après inscription et activation du compte.",
     "share referral":"📲 PARTAGER MON LIEN DE PARRAINAGE",
     "games eyebrow":"JEUX ET DÉFIS","games title":"🎮 Jeux BOUSPAM",
     "games desc":"Jouez, relevez des défis et gagnez des points de jeu.",
@@ -124,7 +124,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"NatCash: payment integration is not active yet. No real transactions take place in this version.",
     "invite title":"🔗 Invite your friends","invite desc":"Share your referral link to invite new members to BOUSPAM.",
     "referral link label":"Your personal referral link","copy link":"Copy link",
-    "referral promo":"💰 Referral rule: 255 HTG for referrals. The more friends you invite who activate their accounts, the more you can earn with BOUSPAM!",
+    "referral promo":"🔗 Invite friends with your personal link. Referrals count after the new member registers and activates their account.",
     "share referral":"📲 SHARE MY REFERRAL LINK",
     "games eyebrow":"FUN AND CHALLENGES","games title":"🎮 BOUSPAM Games",
     "games desc":"Play challenges and collect game points.",
@@ -293,6 +293,27 @@ function showPanel(id) {
 document.querySelectorAll("[data-open]").forEach((button) => {
   button.addEventListener("click", () => showPanel(button.dataset.open));
 });
+
+// Bouton navigasyon anba yo: kenbe paj kont lan pwoteje ak koneksyon.
+document.querySelectorAll("[data-bottom-nav]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const target = button.dataset.bottomNav;
+    document.querySelectorAll("[data-bottom-nav]").forEach(item => item.classList.toggle("is-active", item === button));
+    if (target === "home") {
+      document.querySelector("#welcome")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (!currentUser) {
+      showPanel("login");
+      document.querySelector("#login")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (typeof toast === "function") toast("Konekte sou kont ou pou antre nan espas sa a.");
+      return;
+    }
+    document.querySelector("#dashboard")?.classList.remove("hidden");
+    const destination = target === "games" ? "#gamesSection" : "#dashboard";
+    document.querySelector(destination)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
 document.querySelectorAll("[data-close]").forEach((button) => {
   button.addEventListener("click", () => button.closest("section")?.classList.add("hidden"));
 });
@@ -312,17 +333,46 @@ function escapeHtml(value) {
 function isValidUUID(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || "").trim());
 }
-function extractReferrerId(value) {
-  const input = String(value || "").trim();
-  if (isValidUUID(input)) return input;
+function normalizeReferralToken(value) {
+  let input = String(value || "").trim();
   try {
-    const url = new URL(input);
-    const ref = url.searchParams.get("ref");
-    if (ref && isValidUUID(ref)) return ref;
-  } catch (_) {}
-  return null;
+    if (/^https?:\/\//i.test(input)) input = new URL(input).searchParams.get("ref") || "";
+  } catch (_) { return ""; }
+  input = input.trim();
+  if (isValidUUID(input)) return input;
+  return /^[A-Z0-9]{8}$/i.test(input) ? input.toUpperCase() : "";
 }
-function updateReferralLink(user, isActivated) {
+function referralTokenFromLocation() {
+  return normalizeReferralToken(new URLSearchParams(window.location.search).get("ref"));
+}
+function initReferralSignupField() {
+  const field = document.querySelector("#registerForm input[name='referral']");
+  if (!field) return;
+  const fromUrl = referralTokenFromLocation();
+  let saved = "";
+  try { saved = normalizeReferralToken(localStorage.getItem("bouspam_pending_referral")); } catch (_) {}
+  const token = fromUrl || saved;
+  if (token) {
+    field.value = token;
+    try { localStorage.setItem("bouspam_pending_referral", token); } catch (_) {}
+    field.readOnly = Boolean(fromUrl);
+    field.setAttribute("aria-describedby", "referralAutoNote");
+    let note = document.getElementById("referralAutoNote");
+    if (!note) {
+      note = document.createElement("small"); note.id = "referralAutoNote";
+      note.className = "form-note"; field.insertAdjacentElement("afterend", note);
+    }
+    note.textContent = "Kòd referans envitasyon an antre otomatikman.";
+  }
+  field.addEventListener("input", () => {
+    const clean = normalizeReferralToken(field.value);
+    try {
+      if (clean) localStorage.setItem("bouspam_pending_referral", clean);
+      else if (!fromUrl) localStorage.removeItem("bouspam_pending_referral");
+    } catch (_) {}
+  });
+}
+async function updateReferralLink(user, isActivated) {
   const input = $("#referralLink");
   const message = $("#referralMessage");
   const button = $("#copyReferralBtn");
@@ -330,31 +380,53 @@ function updateReferralLink(user, isActivated) {
   input.value = "";
   if (!isActivated) {
     if (button) button.disabled = true;
-    if (message) message.textContent = ({ht:"🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.",fr:"🔒 Activez votre compte avec 500 HTG pour accéder à votre lien de parrainage.",en:"🔒 Activate your account with 500 HTG to access your referral link."})[currentLanguage()];
+    if (message) message.textContent = ({ht:"🔒 Ou dwe aktive kont ou pou jwenn lyen referans ou.",fr:"🔒 Activez votre compte pour accéder à votre lien de parrainage.",en:"🔒 Activate your account to access your referral link."})[currentLanguage()];
     return;
   }
-  const url = new URL(window.location.href);
-  url.search = ""; url.hash = ""; url.searchParams.set("ref", user.id);
+  const { data: code, error } = await db.rpc("get_or_create_my_referral_code");
+  if (error || !code) {
+    if (button) button.disabled = true;
+    if (message) message.textContent = "Nou pa kapab kreye kòd referans lan kounye a. Eseye ankò pita.";
+    console.error("Referral code RPC:", error?.message);
+    return;
+  }
+  const url = new URL("inscription.html", window.location.href);
+  url.search = ""; url.hash = ""; url.searchParams.set("ref", code);
   input.value = url.toString();
   if (button) button.disabled = false;
-  if (message) message.textContent = "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
+  if (message) message.textContent = "Lyen referans ou pare. Kòd envitasyon an gen 8 karaktè.";
 }
 async function processReferral(user) {
-  if (!db || !user) return;
-  const referrerId = extractReferrerId(user.user_metadata?.referrer_id);
-  if (!referrerId) return;
+  if (!db || !user) return false;
+  const metadata = user.user_metadata || {};
+  const token = normalizeReferralToken(metadata.referrer_code || metadata.referrer_id);
+  if (!token) return false;
+  let referrerId = "";
+  if (isValidUUID(token)) {
+    referrerId = token;
+  } else {
+    const { data, error } = await db.rpc("resolve_referral_code", { p_code: token });
+    if (error || !data) {
+      console.warn("Referral code not resolved:", error?.message || "not found");
+      toast("Kòd referans lan pa valid oswa li poko ka verifye.");
+      return false;
+    }
+    referrerId = data;
+  }
   if (referrerId.toLowerCase() === user.id.toLowerCase()) {
-    toast("Ou pa kapab itilize pwòp lyen referans ou."); return;
+    toast("Ou pa kapab itilize pwòp lyen referans ou."); return false;
   }
   const { error } = await db.rpc("register_referral", { p_referrer_id: referrerId });
   if (error) {
     console.error("Erè referans:", error.message);
     toast("Referans lan poko anrejistre. Li ka deja anrejistre oswa gen yon pwoblèm nan sistèm nan.");
-    return;
+    return false;
   }
-  const { error: updateError } = await db.auth.updateUser({ data: { referrer_id: null } });
-  if (updateError) console.error("Referans anrejistre, men metadata a pa t ajou:", updateError.message);
+  const { error: updateError } = await db.auth.updateUser({ data: { referrer_code: null, referrer_id: null } });
+  if (updateError) console.error("Referans anrejistre, men metadata a pa t netwaye:", updateError.message);
+  try { localStorage.removeItem("bouspam_pending_referral"); } catch (_) {}
   toast("Referans ou anrejistre avèk siksè!");
+  return true;
 }
 async function loadDashboard(user) {
   if (!db || !user) return;
@@ -370,7 +442,7 @@ async function loadDashboard(user) {
   $("#activity").textContent = "Ap chaje aktivite…";
   const { data: profile, error: profileError } = await db.from("profiles").select("is_activated").eq("id", user.id).maybeSingle();
   const isActivated = !profileError && profile !== null && profile.is_activated === true;
-  updateReferralLink(user, isActivated);
+  await updateReferralLink(user, isActivated);
   const { data: wallet, error: walletError } = await db.from("wallets").select("balance,currency").eq("user_id", user.id).maybeSingle();
   if (walletError) {
     $("#balance").innerHTML = '0.00 <small>HTG</small>';
@@ -438,17 +510,24 @@ $("#shareReferralBtn")?.addEventListener("click", async () => {
   }
 });
 
+initReferralSignupField();
+
 $("#registerForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!db) { toast("Koneksyon Supabase pa pare. Verifye supabase-config.js."); return; }
   const form = new FormData(event.target);
   const name = String(form.get("name") || "").trim(), email = String(form.get("email") || "").trim();
   const password = String(form.get("password") || ""), phone = String(form.get("phone") || "").trim();
-  const params = new URLSearchParams(window.location.search);
-  const urlReferrer = extractReferrerId(params.get("ref")), formReferrer = extractReferrerId(form.get("referral"));
+  const urlReferrer = referralTokenFromLocation();
+  let savedReferrer = "";
+  try { savedReferrer = normalizeReferralToken(localStorage.getItem("bouspam_pending_referral")); } catch (_) {}
+  const formReferrer = normalizeReferralToken(form.get("referral"));
+  const referralToken = urlReferrer || formReferrer || savedReferrer;
   const userMetadata = { full_name: name, phone };
-  const referrerId = urlReferrer || formReferrer;
-  if (referrerId) userMetadata.referrer_id = referrerId;
+  if (referralToken) {
+    if (isValidUUID(referralToken)) userMetadata.referrer_id = referralToken; // legacy compatibility
+    else userMetadata.referrer_code = referralToken;
+  }
   const submitButton = event.target.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
   try {
@@ -658,3 +737,38 @@ function showGame(id) {
 }
 document.querySelectorAll("[data-game]").forEach(button => button.addEventListener("click", () => showGame(button.dataset.game)));
 $("#closeGame")?.addEventListener("click", () => { if(raceTimer){clearInterval(raceTimer);raceTimer=null;} $("#gamePlay")?.classList.add("hidden"); });
+
+/* ----------------- BOUSPAM MONEY-GAME RPC (integration scaffold) -----------------
+   Fonksyon sa a louvri yon pati epi anrejistre esè/miz sou Supabase.
+   PA rele settle pou bay pri jiskaske rezilta jwèt la verifye sou sèvè a.
+*/
+async function startBouspamGame(gameCode, wagerHTG = 0) {
+  if (!db || !currentUser) {
+    throw new Error("Konekte anvan ou jwe.");
+  }
+
+  const allowedGames = [
+    "roulette", "secret_box", "tic_tac_toe",
+    "rps", "mystery_cards", "hidden_object"
+  ];
+  if (!allowedGames.includes(gameCode)) {
+    throw new Error("Kòd jwèt la pa valab pou jwèt lajan.");
+  }
+  if (![0, 50, 100].includes(Number(wagerHTG))) {
+    throw new Error("Miz la dwe 0, 50 oswa 100 HTG.");
+  }
+
+  const { data: sessionId, error } = await db.rpc("bouspam_game_start", {
+    p_game_code: gameCode,
+    p_wager_htg: Number(wagerHTG)
+  });
+  if (error) throw error;
+  return sessionId;
+}
+
+// Fè fonksyon kòmansman an disponib pou kòd UI jwèt la.
+window.startBouspamGame = startBouspamGame;
+
+// Règ sekirite: pa rele bouspam_game_settle nan app la ankò.
+// SQL settle aktyèl la tire pri o aza; li pa verifye si jwè a genyen nan jwèt la.
+// N ap ajoute settlement apre lojik chak jwèt verifye sou sèvè.

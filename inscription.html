@@ -7,7 +7,6 @@
   <meta name="description" content="Kreye kont BOUSPAM ou an sekirite.">
   <title>BOUSPAM — Kreye kont</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="pages.css">
   <style>
     .community-signup{width:min(100%,560px);margin:18px auto 0;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;background:#eff8ff;border:1px solid #c8e5ff;border-radius:18px;box-shadow:0 8px 24px rgba(11,101,216,.07)}
     .community-signup-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#d9fbe8;font-size:25px}
@@ -35,7 +34,7 @@
         <label>Imèl<input name="email" type="email" required autocomplete="email" placeholder="ou@example.com"></label>
         <label>Nimewo telefòn (+509, opsyonèl)<input name="phone" inputmode="tel" autocomplete="tel" placeholder="509XXXXXXXX"></label>
         <label>Modpas (omwen 8 karaktè)<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Kreye yon modpas solid"></label>
-        <label>Kòd referans (si ou genyen)<input name="referral" id="referralCode" placeholder="Kòd referans"></label>
+        <label>Kòd referans (si ou genyen)<input name="referral" id="referralCode" maxlength="8" autocapitalize="characters" autocomplete="off" placeholder="8 chif/lèt"></label>
         <button class="btn primary full" type="submit">Kreye kont</button>
         <p class="form-note">Enskripsyon an itilize Supabase. Si yo mande verifikasyon, verifye imèl ou anvan ou konekte.</p>
       </form>
@@ -58,5 +57,5 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="app.js"></script>
-<nav class="bottom-nav bouspam-nav" aria-label="Navigasyon prensipal"><a class="bottom-link" href="index.html"><span>⌂</span><small>Akèy</small></a><a class="bottom-link" href="jeux.html"><span>🎮</span><small>Jwèt</small></a><a class="bottom-link" href="compte.html"><span>☻</span><small>Kont</small></a></nav><a class="group-float" href="https://chat.whatsapp.com/GeUmA1RwVjfGuU44iRMWtM?mode=gi_t" target="_blank" rel="noopener noreferrer" aria-label="Antre nan gwoup WhatsApp BOUSPAM"><span class="group-float-icon">👥</span><span>Gwoup</span></a><a class="support-float" href="support.html" aria-label="Kontakte sipò BOUSPAM"><span class="support-float-icon">💬</span><span>Sipò</span></a></body>
+</body>
 </html>
