@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ht">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b65d8">
+  <meta name="description" content="BOUSPAM — Bous mwen">
+  <title>BOUSPAM — Bous mwen</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="bouspam-4pages.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html" aria-label="BOUSPAM Akèy">
+    <img alt="Logo BOUSPAM" src="9EF1090D-9D52-4783-803F-0A0095A4185F.png">
+    <span><small>Bous ou, nan men ou</small></span>
+  </a>
+  <a class="btn outline" href="compte.html">Kont mwen</a>
+</header>
+
+<main class="page-shell wallet-page">
+  <div class="page-kicker">BOUSPAM · ESPAS FINANSYE</div>
+  <section class="page-title wallet-hero">
+    <span class="eyebrow">Bous pèsonèl ou</span>
+    <h1>💰 Bous mwen</h1>
+    <p>Gade balans ou, swiv tranzaksyon ou yo epi tcheke estati depo ak retrè ou yo.</p>
+  </section>
+
+  <section class="wallet-balance-panel">
+    <div>
+      <span class="wallet-label">Balans disponib</span>
+      <strong id="walletBalance">— <small>HTG</small></strong>
+      <small id="walletStatus">Konekte pou chaje bous ou.</small>
+    </div>
+    <div class="wallet-coin">₲</div>
+  </section>
+
+  <section class="wallet-action-grid">
+    <article class="wallet-action-card">
+      <span>⬆️</span><h2>Depo / Aktivasyon</h2>
+      <p>Frè aktivasyon kont lan se <b>500 HTG</b>. Kont lan dwe aktive apre verifikasyon peman an.</p>
+      <button class="btn primary full" id="walletDepositBtn" type="button">Aktive kont · 500 HTG</button>
+      <small>NatCash poko konekte otomatikman. Pa voye lajan sou baz paj sa a sèlman.</small>
+    </article>
+    <article class="wallet-action-card">
+      <span>⬇️</span><h2>Demann retrè</h2>
+      <p>Retrè a dwe disponib sèlman lè kondisyon yo satisfè epi sistèm lan valide demann lan.</p>
+      <button class="btn outline full" id="walletWithdrawBtn" type="button">Mande retrè</button>
+      <small>Demann retrè reyèl la poko aktive nan vèsyon sa a.</small>
+    </article>
+  </section>
+
+  <section class="wallet-history-panel">
+    <div class="section-title">
+      <div><span class="eyebrow">DOSYE FINANSYE</span><h2>Istwa tranzaksyon</h2><p>Depo, retrè, kredi ak estati yo.</p></div>
+      <button class="btn outline" id="refreshWalletBtn" type="button">Rafrechi</button>
+    </div>
+    <div class="wallet-filter-row">
+      <button class="wallet-filter active" data-filter="all" type="button">Tout</button>
+      <button class="wallet-filter" data-filter="deposit" type="button">Depo</button>
+      <button class="wallet-filter" data-filter="withdraw" type="button">Retrè</button>
+      <button class="wallet-filter" data-filter="referral" type="button">Referans</button>
+    </div>
+    <div id="walletTransactions" class="activity empty" aria-live="polite">Ap verifye koneksyon...</div>
+  </section>
+
+  <section class="support-card">
+    <div class="support-icon">🆘</div>
+    <div><h2>SIPÒ & ASISTANS</h2><p>Bezwen èd pou kont ou, referans oswa kesyon sou bous la? Kontakte sipò oswa rantre nan gwoup la.</p>
+      <div class="support-actions">
+        <a class="btn primary" href="https://wa.me/50948458535" target="_blank" rel="noopener">Ekri sipò sou WhatsApp</a>
+        <a class="btn outline" href="https://chat.whatsapp.com/GeUmA1RwVjfGuU44iRMWtM?mode=gi_t" target="_blank" rel="noopener">Rantre nan gwoup BOUSPAM</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+<nav class="bottom-nav bouspam-nav" aria-label="Navigasyon prensipal">
+  <a class="bottom-link" href="index.html"><span>⌂</span><small>Akèy</small></a>
+  <a class="bottom-link" href="compte.html"><span>👤</span><small>Kont</small></a>
+  <a class="bottom-link" href="jeux.html"><span>🎮</span><small>Jwèt</small></a>
+  <a class="bottom-link active" href="bous.html"><span>💰</span><small>Bous</small></a>
+</nav>
+<div class="toast" id="walletToast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const toast = (msg) => {
+    const el = $("#walletToast");
+    if (!el) return;
+    el.textContent = msg; el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 3500);
+  };
+  const supabaseReady = Boolean(window.supabase && window.BOUSPAM_SUPABASE_URL && window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY);
+  const db = supabaseReady ? window.supabase.createClient(window.BOUSPAM_SUPABASE_URL, window.BOUSPAM_SUPABASE_PUBLISHABLE_KEY) : null;
+  let allTransactions = [];
+  let activeFilter = "all";
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function matchesFilter(tx) {
+    if (activeFilter === "all") return true;
+    const type = String(tx.type || "").toLowerCase();
+    if (activeFilter === "deposit") return type.includes("deposit") || type.includes("depo") || type.includes("activation") || type.includes("aktivasyon");
+    if (activeFilter === "withdraw") return type.includes("withdraw") || type.includes("retrè") || type.includes("retrait");
+    if (activeFilter === "referral") return type.includes("referral") || type.includes("referans");
+    return true;
+  }
+  function renderTransactions() {
+    const box = $("#walletTransactions");
+    const rows = allTransactions.filter(matchesFilter);
+    if (!rows.length) {
+      box.classList.add("empty");
+      box.textContent = activeFilter === "all" ? "Pa gen tranzaksyon ki parèt pou kounye a." : "Pa gen tranzaksyon nan kategori sa a.";
+      return;
+    }
+    box.classList.remove("empty");
+    box.innerHTML = rows.map(tx => `<div class="activity-row"><b>${esc(tx.type || "Tranzaksyon")}</b> · ${Number(tx.amount || 0).toFixed(2)} ${esc(tx.currency || "HTG")} · <strong>${esc(tx.status || "An atant")}</strong><small>${tx.created_at ? new Date(tx.created_at).toLocaleString() : ""}</small></div>`).join("");
+  }
+  async function loadWallet() {
+    if (!db) {
+      $("#walletBalance").innerHTML = '— <small>HTG</small>';
+      $("#walletStatus").textContent = "Konfigirasyon Supabase pa pare.";
+      $("#walletTransactions").textContent = "Pa gen koneksyon ak bazdone a. Verifye supabase-config.js.";
+      return;
+    }
+    $("#walletStatus").textContent = "Ap verifye sesyon ou...";
+    const { data: sessionData, error: sessionError } = await db.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      $("#walletBalance").innerHTML = '0.00 <small>HTG</small>';
+      $("#walletStatus").textContent = "Konekte sou kont ou pou wè balans pèsonèl ou.";
+      $("#walletTransactions").classList.add("empty");
+      $("#walletTransactions").innerHTML = 'Pou wè istwa pèsonèl ou, <a href="compte.html#login">konekte sou BOUSPAM</a>.';
+      return;
+    }
+    const user = sessionData.session.user;
+    $("#walletStatus").textContent = "Bous ki asosye ak kont ou.";
+    const { data: wallet, error: walletError } = await db.from("wallets").select("balance,currency").eq("user_id", user.id).maybeSingle();
+    if (walletError) {
+      $("#walletBalance").innerHTML = '0.00 <small>HTG</small>';
+      $("#walletStatus").textContent = "Nou pa kapab li bous la kounye a. Verifye aksè bazdone a.";
+    } else {
+      $("#walletBalance").innerHTML = `${Number(wallet?.balance || 0).toFixed(2)} <small>${esc(wallet?.currency || "HTG")}</small>`;
+    }
+    const { data, error } = await db.from("transactions").select("type,amount,status,created_at").eq("user_id", user.id).order("created_at", {ascending:false}).limit(100);
+    if (error) {
+      $("#walletTransactions").textContent = "Nou pa kapab chaje istwa tranzaksyon an kounye a.";
+      return;
+    }
+    allTransactions = (data || []).map(tx => ({...tx, currency: wallet?.currency || "HTG"}));
+    renderTransactions();
+  }
+  $("#walletDepositBtn")?.addEventListener("click", () => toast("Aktivasyon ak peman 500 HTG poko konekte. Pa voye lajan jiskaske verifikasyon ofisyèl la pare."));
+  $("#walletWithdrawBtn")?.addEventListener("click", () => toast("Demann retrè reyèl poko aktive. N ap aktive l sèlman apre verifikasyon sou sèvè."));
+  $("#refreshWalletBtn")?.addEventListener("click", loadWallet);
+  document.querySelectorAll("[data-filter]").forEach(btn => btn.addEventListener("click", () => {
+    activeFilter = btn.dataset.filter;
+    document.querySelectorAll("[data-filter]").forEach(b => b.classList.toggle("active", b === btn));
+    renderTransactions();
+  }));
+  loadWallet();
+})();
+</script>
+</body>
+</html>
