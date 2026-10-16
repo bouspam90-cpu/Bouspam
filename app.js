@@ -148,7 +148,7 @@ const LANGUAGE_SELECTORS = {
   "header tagline":".brand small",
   "hero eyebrow":"#welcome .eyebrow",
   "hero p":"#welcome .hero-copy p",
-  "create account":"#welcome [data-create-account]",
+  "create account":"#welcome [data-open='register']",
   "login":"#welcome [data-open='login']",
   "balance card":".hero-card .card-top span:first-child",
   "card bottom":".hero-card .card-bottom span:first-child",
@@ -169,7 +169,6 @@ const LANGUAGE_SELECTORS = {
   "available balance":".balance-card > span:first-child",
   "activate":"#activateBtn",
   "withdraw":"#withdrawBtn",
-  "natcash notice":"#dashboard > .notice",
   "invite title":"#referralSection h3",
   "invite desc":"#referralSection > p",
    "copy link":"#copyReferralBtn",
@@ -302,7 +301,7 @@ function setSignedOutView() {
   $("#dashboard")?.classList.add("hidden");
   $("#welcome")?.classList.remove("hidden");
   $(".features")?.classList.remove("hidden");
-  $("#adminInfo")?.classList.remove("hidden");
+  $("#adminInfo")?.classList.add("hidden");
 }
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({
@@ -322,6 +321,15 @@ function extractReferrerId(value) {
   } catch (_) {}
   return null;
 }
+
+// Kenbe kòd moun ki envite a lè lyen an louvri paj enskripsyon an.
+(() => {
+  const field = $("#referralCode");
+  if (!field) return;
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  const validRef = extractReferrerId(ref);
+  if (validRef) { field.value = validRef; field.readOnly = true; }
+})();
 function updateReferralLink(user, isActivated) {
   const input = $("#referralLink");
   const message = $("#referralMessage");
@@ -333,8 +341,8 @@ function updateReferralLink(user, isActivated) {
     if (message) message.textContent = ({ht:"🔒 Ou dwe aktive kont ou avèk 500 HTG anvan ou jwenn aksè ak lyen referans ou.",fr:"🔒 Activez votre compte avec 500 HTG pour accéder à votre lien de parrainage.",en:"🔒 Activate your account with 500 HTG to access your referral link."})[currentLanguage()];
     return;
   }
-  const url = new URL(window.location.href);
-  url.search = ""; url.hash = ""; url.searchParams.set("ref", user.id);
+  const url = new URL("inscription.html", window.location.href);
+  url.searchParams.set("ref", user.id);
   input.value = url.toString();
   if (button) button.disabled = false;
   if (message) message.textContent = "Lyen referans ou pare. Ou kapab kopye li epi pataje li.";
@@ -359,6 +367,12 @@ async function processReferral(user) {
 async function loadDashboard(user) {
   if (!db || !user) return;
   currentUser = user;
+  // The site is split into home, games and account pages. On the games page,
+  // load the authenticated user's daily points without requiring account DOM.
+  if (!$("#dashboard")) {
+    if (typeof initGamesForUser === "function") await initGamesForUser(user.id);
+    return;
+  }
   panels.forEach((p) => $("#" + p)?.classList.add("hidden"));
   $("#welcome")?.classList.add("hidden");
   $(".features")?.classList.add("hidden");
@@ -366,31 +380,34 @@ async function loadDashboard(user) {
   $("#dashboard")?.classList.remove("hidden");
   const meta = user.user_metadata || {};
   if ($("#userName")) $("#userName").textContent = meta.full_name || user.email || "zanmi";
-  $("#balance").innerHTML = '— <small>HTG</small>';
-  $("#activity").textContent = "Ap chaje aktivite…";
+  if ($("#balance")) $("#balance").innerHTML = '— <small>HTG</small>';
+  if ($("#activity")) $("#activity").textContent = "Ap chaje aktivite…";
   const { data: profile, error: profileError } = await db.from("profiles").select("is_activated").eq("id", user.id).maybeSingle();
   const isActivated = !profileError && profile !== null && profile.is_activated === true;
+  if ($("#activationPaymentForm")) $("#activationPaymentForm").classList.toggle("hidden", isActivated);
   updateReferralLink(user, isActivated);
   const { data: wallet, error: walletError } = await db.from("wallets").select("balance,currency").eq("user_id", user.id).maybeSingle();
   if (walletError) {
-    $("#balance").innerHTML = '0.00 <small>HTG</small>';
-    $("#activity").textContent = "Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo nan Supabase.";
+    if ($("#balance")) $("#balance").innerHTML = '0.00 <small>HTG</small>';
+    if ($("#activity")) $("#activity").textContent = "Nou pa kapab li bous la kounye a. Verifye koneksyon ak règ RLS yo nan Supabase.";
   } else if (wallet) {
-    $("#balance").innerHTML = `${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency || "HTG")}</small>`;
+    if ($("#balance")) $("#balance").innerHTML = `${Number(wallet.balance).toFixed(2)} <small>${escapeHtml(wallet.currency || "HTG")}</small>`;
   }
   const { data: transactions, error: transactionError } = await db.from("transactions").select("type,amount,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10);
   if (!transactionError && transactions && transactions.length > 0) {
-    $("#activity").classList.remove("empty");
-    $("#activity").innerHTML = transactions.map((transaction) => `
+    $("#activity")?.classList.remove("empty");
+    if ($("#activity")) $("#activity").innerHTML = transactions.map((transaction) => `
       <div class="activity-row"><b>${escapeHtml(transaction.type)}</b> · ${Number(transaction.amount).toFixed(2)} HTG · ${escapeHtml(transaction.status)}
       <small>${new Date(transaction.created_at).toLocaleString()}</small></div>`).join("");
   } else if (!transactionError) {
-    $("#activity").textContent = "Pa gen tranzaksyon verifye pou kounye a.";
+    if ($("#activity")) $("#activity").textContent = "Pa gen tranzaksyon verifye pou kounye a.";
   } else if (!walletError) {
-    $("#activity").textContent = "Bous la chaje. Istwa tranzaksyon an poko disponib.";
+    if ($("#activity")) $("#activity").textContent = "Bous la chaje. Istwa tranzaksyon an poko disponib.";
   }
-  $("#dashboard").scrollIntoView({ behavior: "smooth", block: "start" });
-  initGamesForUser(user.id);
+  $("#dashboard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  await initGamesForUser(user.id);
+  await loadMoneyPanels(user.id);
+  await loadAdminPanel();
 }
 $("#copyReferralBtn")?.addEventListener("click", async () => {
   const input = $("#referralLink"), message = $("#referralMessage");
@@ -455,14 +472,9 @@ $("#registerForm")?.addEventListener("submit", async (event) => {
     const { data, error } = await db.auth.signUp({ email, password, options: { data: userMetadata } });
     if (error) { toast("Enskripsyon pa reyisi: " + error.message); return; }
     if (data.session && data.user) {
-      await processReferral(data.user);
-      toast("Kont ou kreye avèk siksè. N ap ouvri kont ou...");
-      window.location.href = "index.html";
+      await processReferral(data.user); await loadDashboard(data.user); toast("Kont ou kreye epi ou konekte.");
     } else {
-      toast("Kont la kreye. Verifye imèl ou anvan ou konekte si yo mande sa.");
-      event.target.reset();
-      if (document.querySelector("#login")) showPanel("login");
-      else setTimeout(() => { window.location.href = "index.html?open=login"; }, 1200);
+      toast("Kont la kreye. Verifye imèl ou anvan ou konekte si yo mande sa."); event.target.reset(); showPanel("login");
     }
   } catch (error) {
     console.error("Erè enskripsyon:", error); toast("Yon erè rive pandan enskripsyon an. Eseye ankò.");
@@ -489,27 +501,163 @@ $("#logout")?.addEventListener("click", async () => {
   }
   setSignedOutView(); toast("Ou dekonekte.");
 });
-$("#activateBtn")?.addEventListener("click", () => toast("Peman 500 HTG poko aktive. Pa voye lajan jiskaske peman ofisyèl ak verifikasyon yo konekte."));
-$("#withdrawBtn")?.addEventListener("click", () => toast("Retrè minimòm 255 HTG poko aktive. Sistèm nan bezwen validasyon sou sèvè ak entegrasyon peman ofisyèl."));
+$("#activateBtn")?.addEventListener("click", () => { const d=$("#financeDetails"); if(d)d.open=true; $("#activationPaymentForm")?.scrollIntoView({behavior:"smooth",block:"center"}); });
+$("#withdrawBtn")?.addEventListener("click", () => { const d=$("#financeDetails"); if(d)d.open=true; $("#withdrawalForm")?.scrollIntoView({behavior:"smooth",block:"center"}); });
+
+/* ----------------- Bous: demann ki rete annatant jiskaske admin verifye ----------------- */
+function moneyStatusLabel(value) {
+  return ({pending:"An atant verifikasyon",completed:"Konplete",rejected:"Rejte",approved:"Apwouve"})[String(value||"").toLowerCase()] || String(value||"—");
+}
+function moneyTypeLabel(value) {
+  return ({activation:"Aktivasyon kont",deposit:"Depo",withdrawal:"Retrè",referral_commission:"Komisyon referans"})[String(value||"")] || String(value||"Tranzaksyon");
+}
+let cachedUserTransactions = [];
+async function loadMoneyPanels(userId) {
+  if (!db || !userId) return;
+  const {data: publicSettings, error: settingsError} = await db.rpc("bouspam_public_site_settings");
+  if (!settingsError && publicSettings) {
+    const siteMessage = $("#siteMessage");
+    if (siteMessage) siteMessage.textContent = publicSettings.site_message || "";
+    const withdrawAmount = $("#withdrawalForm input[name='amount']");
+    if (withdrawAmount) withdrawAmount.min = String(Number(publicSettings.withdrawal_minimum || 255));
+    const withdrawText = $("#withdrawalForm h4");
+    if (withdrawText) withdrawText.textContent = "Retrè (minimòm " + Number(publicSettings.withdrawal_minimum || 255) + " HTG)";
+  }
+  const list = $("#transactionList");
+  if (list) list.textContent = "Ap chaje tranzaksyon…";
+  const {data: transactions, error: txError} = await db.from("transactions").select("id,type,amount,status,reference,created_at").eq("user_id", userId).order("created_at", {ascending:false}).limit(200);
+  if (txError) {
+    if (list) list.textContent = "Istwa a poko ka chaje. Verifye RLS/pèmisyon transactions nan Supabase.";
+    console.error(txError);
+  } else {
+    cachedUserTransactions = transactions || [];
+    renderUserTransactions();
+  }
+  const referrals = $("#myReferralList");
+  if (referrals) {
+    const {data, error} = await db.from("referrals").select("id,referred_id,status,commission_paid,created_at,validated_at").eq("referrer_id",userId).order("created_at",{ascending:false}).limit(200);
+    if (error) { referrals.textContent = "Lis referans lan poko ka chaje. Verifye RLS tab referrals la."; console.error(error); }
+    else if (!data?.length) referrals.textContent = "Ou poko gen referans anrejistre.";
+    else referrals.innerHTML = data.map(r=>`<div class="admin-row"><b>${adminText(r.status === "validated" ? "Referans valide" : r.status === "pending" ? "Referans annatant" : r.status)}</b><small>Manm: ${adminText(r.referred_id)} · Komisyon peye: ${r.commission_paid ? "Wi" : "Non"} · Dat: ${adminText(r.created_at || "—")}</small></div>`).join("");
+  }
+}
+function renderUserTransactions() {
+  const list = $("#transactionList"); if (!list) return;
+  const filter = $("#transactionFilter")?.value || "all";
+  const rows = cachedUserTransactions.filter(t=>filter === "all" || t.type === filter);
+  if (!rows.length) { list.textContent = "Pa gen tranzaksyon nan kategori sa a."; return; }
+  list.innerHTML = rows.map(t=>`<div class="admin-row"><b>${adminText(moneyTypeLabel(t.type))} · ${adminText(Number(t.amount).toFixed(2))} HTG</b><small>Estati: ${adminText(moneyStatusLabel(t.status))} · Referans: ${adminText(t.reference || "—")} · ${adminText(t.created_at || "")}</small></div>`).join("");
+}
+$("#transactionFilter")?.addEventListener("change", renderUserTransactions);
+async function submitMoneyRequest(form, type) {
+  if (!db || !currentUser) { toast("Konekte sou kont ou anvan ou fè demann."); return; }
+  const fd = new FormData(form);
+  const amount = type === "activation" ? 500 : Number(fd.get("amount"));
+  const reference = String(fd.get("reference") || "").trim();
+  const status = $("#moneyActionStatus");
+  const button = form.querySelector("button[type='submit']");
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ap voye demann lan…";
+  try {
+    const {data, error} = await db.rpc("bouspam_request_money_action", {p_type:type,p_amount:amount,p_reference:reference});
+    if (error) { if (status) status.textContent = error.message; toast("Demann lan pa pase. Verifye enfòmasyon yo."); return; }
+    form.reset();
+    if (status) status.textContent = "Demann lan anrejistre. Li rete AN ATANT jiskaske administratè a verifye li.";
+    toast("Demann lan anrejistre kòm annatant.");
+    await loadMoneyPanels(currentUser.id);
+  } catch (err) { console.error(err); if (status) status.textContent = "Erè rezo. Eseye ankò."; }
+  finally { if (button) button.disabled = false; }
+}
+$("#activationPaymentForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"activation");});
+$("#depositForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"deposit");});
+$("#withdrawalForm")?.addEventListener("submit", e=>{e.preventDefault();submitMoneyRequest(e.currentTarget,"withdrawal");});
+$("#saveSiteSettings")?.addEventListener("click", async ()=>{
+  const status=$("#adminSiteSettingsStatus");
+  if (!db || !currentUser) return;
+  status.textContent="Ap sove paramèt yo…";
+  const {data,error}=await db.rpc("bouspam_admin_save_site_settings",{p_withdrawal_minimum:Number($("#adminWithdrawalMinimum").value),p_site_message:String($("#adminSiteMessage").value||"").trim()});
+  if (error || data !== true) { status.textContent="Pa t kapab sove paramèt yo. Se administratè otorize a sèlman ki ka fè sa."; console.error(error); return; }
+  status.textContent="Paramèt yo sove. Frè aktivasyon an rete 500 HTG.";
+  toast("Paramèt sit la sove.");
+  await loadAdminPanel();
+});
+
 $("#langBtn")?.addEventListener("click", cycleLanguage);
 applyLanguage(currentLanguage());
-const pageParams = new URLSearchParams(window.location.search);
-if (pageParams.get("open") === "login" && document.querySelector("#login")) showPanel("login");
-const createAccountLink = document.querySelector("[data-create-account]");
-if (createAccountLink && pageParams.has("ref")) createAccountLink.href = "inscription.html?ref=" + encodeURIComponent(pageParams.get("ref"));
+
+/* ----------------- PANEL ADMINISTRATÈ (otorizasyon verifye sou sèvè) ----------------- */
+function adminText(value) { return escapeHtml(value == null ? "—" : String(value)); }
+function adminRow(title, detail, actionHtml="") {
+  return `<div class="admin-row"><b>${adminText(title)}</b><small>${adminText(detail)}</small>${actionHtml}</div>`;
+}
+async function loadAdminPanel() {
+  const section = $("#adminInfo"), status = $("#adminStatus");
+  if (!section || !db || !currentUser) return;
+  status.textContent = "Ap verifye dwa administratè yo…";
+  const {data, error} = await db.rpc("bouspam_admin_dashboard");
+  if (error || !data || data.is_admin !== true) {
+    section.classList.add("hidden");
+    return;
+  }
+  section.classList.remove("hidden");
+  status.textContent = "Aksè administratè konfime pou kont sa a.";
+  const stats = data.stats || {};
+  $("#adminStats").innerHTML = [
+    ["Manm",stats.members], ["Kont aktive",stats.activated], ["Referans annatant",stats.pending_referrals], ["Tranzaksyon",stats.transactions]
+  ].map(([label,value])=>`<div class="admin-stat"><b>${adminText(value ?? 0)}</b><span>${label}</span></div>`).join("");
+  const settings = data.settings || {};
+  $("#adminGamesEnabled").checked = settings.games_enabled !== false;
+  $("#adminActivationFee").value = Number(settings.activation_fee || 500);
+  $("#adminWithdrawalMinimum").value = Number(settings.withdrawal_minimum || 255);
+  $("#adminSiteMessage").value = settings.site_message || "";
+  $("#adminMembers").innerHTML = (data.members || []).length ? data.members.map(m=>adminRow(m.full_name || m.username || m.id, (m.is_activated ? "Aktive" : "Pa aktive") + " · " + (m.created_at || ""))).join("") : "Pa gen manm pou montre.";
+  $("#adminReferrals").innerHTML = (data.referrals || []).length ? data.referrals.map(r=>adminRow("Referans: " + r.id, "Manm envite: " + r.referred_id + " · Estati: " + r.status,
+    r.status === "pending" ? `<button class="btn primary admin-validate-ref" data-referral="${adminText(r.id)}" type="button">Valide referans</button>` : "")).join("") : "Pa gen referans annatant.";
+  $("#adminTransactions").innerHTML = (data.transactions || []).length ? data.transactions.map(t=>{
+    const details = "Manm: " + t.user_id + " · Estati: " + t.status + " · Referans: " + (t.reference || "—") + " · " + (t.created_at || "");
+    const actions = t.status === "pending" && ["activation","deposit","withdrawal"].includes(t.type)
+      ? `<div class="admin-action-row"><button class="btn primary admin-review-tx" data-id="${adminText(t.id)}" data-decision="approve" type="button">Apwouve / verifye</button><button class="btn outline admin-review-tx" data-id="${adminText(t.id)}" data-decision="reject" type="button">Rejte</button></div>` : "";
+    return adminRow(t.type + " · " + t.amount + " HTG", details, actions);
+  }).join("") : "Pa gen tranzaksyon pou montre.";
+  section.querySelectorAll(".admin-review-tx").forEach(button => button.addEventListener("click", async () => {
+    const decision = button.dataset.decision;
+    const promptText = decision === "approve" ? "Konfime ou verifye peman/retre sa a nan NatCash oswa nan dosye ki kòrèk la?" : "Ou vle rejte tranzaksyon sa a?";
+    if (!confirm(promptText)) return;
+    section.querySelectorAll(`.admin-review-tx[data-id="${button.dataset.id}"]`).forEach(b=>b.disabled=true);
+    const {data: reviewed, error: reviewError} = await db.rpc("bouspam_admin_review_transaction", {p_transaction_id: button.dataset.id, p_decision: decision});
+    if (reviewError || reviewed !== true) { toast("Nou pa t kapab trete tranzaksyon an: " + (reviewError?.message || "erè")); console.error(reviewError); await loadAdminPanel(); return; }
+    toast(decision === "approve" ? "Tranzaksyon apwouve. Verifye balans/manm nan." : "Tranzaksyon rejte.");
+    await loadAdminPanel();
+  }));
+  section.querySelectorAll(".admin-validate-ref").forEach(button => button.addEventListener("click", async () => {
+    button.disabled = true; button.textContent = "Ap verifye…";
+    const {error: validateError} = await db.rpc("validate_referral", {p_referral_id: button.dataset.referral});
+    if (validateError) { button.disabled = false; button.textContent = "Valide referans"; toast("Referans lan pa valide: verifye si kont manm nan aktive."); console.error(validateError); return; }
+    toast("Referans valide. Si li satisfè règ yo, bazdone a ap kalkile komisyon an."); await loadAdminPanel();
+  }));
+}
+$("#refreshAdminBtn")?.addEventListener("click", loadAdminPanel);
+$("#saveGameSettings")?.addEventListener("click", async () => {
+  const status = $("#adminGameStatus");
+  if (!db || !currentUser) return;
+  status.textContent = "Ap sove…";
+  const {data, error} = await db.rpc("bouspam_admin_set_games_enabled", {p_enabled: $("#adminGamesEnabled").checked});
+  if (error || data !== true) { status.textContent = "Pa t kapab sove. Kouri fichye SQL ki vini nan pake a epi verifye dwa administratè a."; console.error(error); return; }
+  status.textContent = "Paramèt jwèt yo sove.";
+  document.querySelectorAll("#gamesGrid [data-game]").forEach(b=>b.disabled = !$("#adminGamesEnabled").checked);
+});
+
 (async () => {
   if (!db) { toast("Konfigirasyon Supabase pa chaje."); return; }
   const { data, error } = await db.auth.getSession();
   if (error) { console.error("Erè sesyon:", error.message); return; }
-  if (data.session) {
-    if (location.pathname.toLowerCase().endsWith("inscription.html")) { window.location.replace("index.html"); return; }
-    await loadDashboard(data.session.user);
-  }
+  if (data.session) await loadDashboard(data.session.user);
+  else if ($("#gamesSection")) await initGamesForUser(null);
 })();
 
 /* ----------------- 13 JWÈT BOUSPAM: Pwen jwèt sèlman -----------------
-   Remak: vèsyon pwototip la sere pwen nan navigatè a. Pa sèvi ak pwen sa yo
-   pou peman oswa retrè; pou sa, fòk gen verifikasyon sou sèvè.
+   Pwen yo anrejistre sou Supabase pa award_daily_game_points; yo pa HTG
+   epi yo pa ka sèvi kòm lajan depo oswa retrè.
 */
 const gameCatalog = {
   roulette: "🎡 Woulet BOUSPAM", number: "🎯 Devinèt nimewo", quiz: "🧠 Kesyon entèlijans",
@@ -534,6 +682,14 @@ function gameStorageKey() {
 async function initGamesForUser(userId) {
   gameUserKey = String(userId || "guest");
   gamePoints = 0;
+  if (db) {
+    const {data: gamesEnabled, error: gamesStatusError} = await db.rpc("bouspam_games_status");
+    if (!gamesStatusError && typeof gamesEnabled === "boolean") {
+      document.querySelectorAll("#gamesGrid [data-game]").forEach(b => { b.disabled = !gamesEnabled; });
+      const warning = document.querySelector("#gamesSection .games-warning");
+      if (warning && !gamesEnabled) warning.textContent = "Jwèt yo fèmen tanporèman pa administratè a.";
+    }
+  }
   if (db && userId) {
     const today = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Port-au-Prince", year:"numeric", month:"2-digit", day:"2-digit"}).format(new Date());
     const {data, error} = await db.from("bouspam_daily_game_points").select("points").eq("user_id", userId).eq("point_date", today).maybeSingle();
@@ -581,8 +737,22 @@ function showGame(id) {
   gameFeedback("");
   const views = {
     roulette: () => {
-      body.innerHTML = `<p>Peze bouton an pou vire woulet la. Chak vire bay pwen jwèt, pa lajan.</p><div class="roulette-wheel" aria-hidden="true">🎡</div><button class="btn primary" id="spinWheel">Vire woulet la</button>`;
-      $("#spinWheel").onclick = () => { const prizes = [5, 10, 15, 20, 25, 30, 0, 10]; const prize = prizes[Math.floor(Math.random()*prizes.length)]; if (prize) addGamePoints(prize, "Woulet la tonbe sou pwen"); else gameFeedback("Bòn chans pwochen fwa! Ou pa pèdi okenn pwen."); };
+      body.innerHTML = `<p>Peze bouton an pou wè woulet la vire. Chak vire ka bay pwen jwèt, pa lajan.</p><div class="roulette-wheel" id="rouletteWheel" aria-label="Woulet BOUSPAM"></div><button class="btn primary" id="spinWheel" type="button">🎡 Vire woulet la</button>`;
+      $("#spinWheel").onclick = () => {
+        const button = $("#spinWheel"), wheel = $("#rouletteWheel");
+        if (!button || !wheel || button.disabled) return;
+        button.disabled = true; gameFeedback("Woulet la ap vire…");
+        const prizes = [5, 10, 15, 20, 25, 30, 0, 10];
+        const prizeIndex = Math.floor(Math.random()*prizes.length), prize = prizes[prizeIndex];
+        const angle = 1800 + (prizeIndex * 45) + Math.floor(Math.random()*35);
+        wheel.style.setProperty("--spin-angle", angle + "deg");
+        wheel.classList.remove("spinning"); void wheel.offsetWidth; wheel.classList.add("spinning");
+        wheel.addEventListener("animationend", () => {
+          wheel.classList.remove("spinning"); button.disabled = false;
+          if (prize) addGamePoints(prize, "Woulet la tonbe sou " + prize + " pwen");
+          else gameFeedback("Bòn chans pwochen fwa! Woulet la tonbe sou 0 pwen.");
+        }, {once:true});
+      };
     },
     number: () => {
       numberTarget = Math.floor(Math.random()*10)+1; numberAttempts = 0;
@@ -658,3 +828,9 @@ function showGame(id) {
 }
 document.querySelectorAll("[data-game]").forEach(button => button.addEventListener("click", () => showGame(button.dataset.game)));
 $("#closeGame")?.addEventListener("click", () => { if(raceTimer){clearInterval(raceTimer);raceTimer=null;} $("#gamePlay")?.classList.add("hidden"); });
+
+// Support direct links to account forms from the home page.
+if (location.pathname.endsWith("compte.html") && (location.hash === "#register" || location.hash === "#login")) {
+  const target = location.hash.slice(1);
+  setTimeout(() => showPanel(target), 50);
+}

@@ -34,3 +34,14 @@ main{max-width:1100px;margin:0 auto;padding:30px 22px 50px}.welcome{display:grid
 .auth-assurance{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--muted);font-size:12px;line-height:1.5;text-align:center;margin:18px 5px 0}
 .auth-page footer{margin-top:auto}
 @media(max-width:720px){.compact-features{grid-template-columns:1fr 1fr;gap:8px}.compact-features article{padding:12px}.compact-features article:last-child{grid-column:1/-1}.auth-main{padding-top:18px}.auth-card{padding:22px 18px}}
+
+
+/* BOUSPAM: ba navigasyon anba ak bouton Sipò flotan */
+.bottom-nav{position:fixed;z-index:30;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,560px);display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border:1px solid #dce8f7;border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -8px 28px #123d6d14;backdrop-filter:blur(12px)}
+.bottom-nav-item{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:12px;background:transparent;color:#6d7d96;text-decoration:none;font:inherit;cursor:pointer}
+.bottom-nav-item>span{font-size:21px;line-height:1.1}.bottom-nav-item small{font-size:11px;font-weight:800}.bottom-nav-item.is-active{color:var(--blue);background:#eaf4ff}
+.support-float{position:fixed;right:max(16px,calc((100vw - 1100px)/2));bottom:88px;z-index:31;display:inline-flex;align-items:center;gap:9px;padding:12px 17px;border-radius:999px;background:linear-gradient(135deg,#0b65d8,#084ba8);color:#fff;text-decoration:none;font-size:14px;font-weight:800;box-shadow:0 9px 25px #0b65d84a;border:2px solid #fff;transition:transform .2s,box-shadow .2s}
+.support-float:hover{transform:translateY(-2px);box-shadow:0 12px 28px #0b65d85c}.support-float-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#ffffff25;font-size:16px}
+body{padding-bottom:78px}footer{margin-bottom:4px}
+@media(min-width:721px){.bottom-nav{bottom:12px;border:1px solid #dce8f7;border-radius:18px}.support-float{bottom:92px}}
+@media(max-width:720px){.bottom-nav{width:100%;border-radius:18px 18px 0 0}.support-float{right:14px;bottom:88px;padding:11px 15px}.support-float>span:last-child{font-size:13px}body{padding-bottom:82px}}

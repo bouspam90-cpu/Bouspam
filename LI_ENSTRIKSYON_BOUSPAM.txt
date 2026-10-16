@@ -1,0 +1,26 @@
+BOUSPAM — VÈSYON KI SEPARE AN 3 PAJ
+
+SA NOU CHANJE
+- index.html: Akèy sèlman, pi kout.
+- jeux.html: tout jwèt yo sou yon paj apa.
+- compte.html: enskripsyon, koneksyon, balans, aktivasyon, depo, retrè, referans ak administrasyon. Seksyon kont yo ka ouvri/fèmen pou paj la pa parèt twò long.
+- pages.css: estil adisyonèl pou twa paj yo; li chaje APRÈ style.css ou deja genyen an.
+- app.js: pataje menm lojik la sou 3 paj yo, ak ajisteman pou paj jwèt la mache san dashboard.
+- BOUSPAM_ADMIN_JEUX_REFERENCES.sql: menm script Supabase ki nan dènye pake a.
+
+ETAP SOU GITHUB
+1. Telechaje/ouvri ZIP la.
+2. Mete/ranplase index.html.
+3. Ajoute nouvo fichiers jeux.html, compte.html ak pages.css.
+4. Ranplase app.js ak app.js ki nan pake sa a.
+5. PA ranplase supabase-config.js. PA efase foto/logo ou yo. PA ranplase style.css ou a.
+6. Kenbe admin.html ak admin.js jan yo ye a pou kounye a.
+
+ETAP SUPABASE
+- SQL la pa egzekite otomatikman paske ou mete li sou GitHub. Louvri Supabase SQL Editor, revize script la, epi egzekite l sèlman si li koresponn ak bazdone ou a. Si li bay erè, pa kouri lòt SQL o aza; voye erè a egzak.
+
+ENPÒTAN
+- Sit la pa mete ajou jis paske ZIP la prepare. Ou dwe mete fichye yo sou GitHub epi tann Pages fini pibliye.
+- NatCash pa konekte otomatikman. Aktivasyon/depo/retrè rete annatant jiskaske administratè a verifye peman an manyèlman.
+- Pwen jwèt yo se pwen sèlman, pa HTG.
+- Mwen pa t kapab li kontni piblik paryajlakay.com ak navigatè a. UpTop mwen te kapab wè ekran koneksyon kout li: nimewo telefòn, PIN, epi lyen enskripsyon. Estrikti BOUSPAM nan pake sa a itilize lide navigasyon senp, san kopye mak oswa konsepsyon egzak sit sa yo.
