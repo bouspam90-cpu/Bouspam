@@ -20,6 +20,19 @@
     .support-item b{display:block;margin-bottom:7px}
     .support-item a{display:inline-block;margin-top:10px;text-decoration:none}
     .support-note{font-size:.92rem;color:#53657a;margin-top:14px}
+
+    .community-banner{max-width:1100px;margin:18px auto;padding:0 18px}
+    .community-banner-inner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 18px;border:1px solid #cfe4ff;border-radius:16px;background:linear-gradient(135deg,#eef7ff,#ffffff);box-shadow:0 7px 22px rgba(15,70,130,.07)}
+    .community-copy b{display:block;color:#12416e;margin-bottom:4px}
+    .community-copy span{color:#53657a;font-size:.94rem;line-height:1.45}
+    .community-actions{display:flex;gap:9px;flex-wrap:wrap}
+    .community-actions a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;min-height:42px;padding:10px 14px;border-radius:11px;font-weight:700}
+    .group-btn{background:#168b55;color:#fff}
+    .support-float{position:fixed;right:16px;bottom:18px;z-index:9999;display:flex;align-items:center;gap:8px;padding:13px 17px;border-radius:999px;background:#0b65d8;color:#fff;text-decoration:none;font-weight:800;box-shadow:0 8px 25px rgba(11,101,216,.35);border:2px solid #fff}
+    .support-float span{font-size:1.2rem}
+    .register-community{margin-top:14px;padding:13px;border-radius:12px;background:#effaf4;border:1px solid #c9efd8;text-align:center;line-height:1.5}
+    .register-community a{color:#087a42;font-weight:800}
+    @media(max-width:520px){.community-banner-inner{align-items:flex-start}.community-actions{width:100%}.community-actions a{flex:1}.support-float{right:12px;bottom:12px;padding:12px 15px}.support-float .float-label{display:inline}}
   </style>
 </head>
 <body>
@@ -63,6 +76,7 @@
         <button class="btn primary full" type="submit">Kreye kont</button>
         <p class="form-note">Kont lan ap kreye atravè Supabase. Si verifikasyon imèl aktive, verifye imèl ou anvan ou konekte.</p>
       </form>
+      <div class="register-community">💬 <b>Rete konekte ak kominote BOUSPAM lan!</b><br>Antre nan gwoup WhatsApp ofisyèl la pou resevwa nouvèl ak èd.<br><a href="https://chat.whatsapp.com/GeUmA1RwVjfGuU44iRMWtM?mode=gi_t" target="_blank" rel="noopener noreferrer">👉 KLIKE LA POU ANTRE NAN GWÒUP LA</a></div>
     </section>
     <section id="login" class="form-panel hidden">
       <div class="panel-heading"><div><span class="eyebrow">BON RETOU</span><h2>Konekte sou kont ou</h2></div><button class="close" data-close aria-label="Fèmen">×</button></div>
@@ -125,6 +139,13 @@
     <section id="adminInfo" class="admin-info"><span class="admin-icon">🛡️</span><div><b>Administrasyon prive</b><p>Panel administratè a dwe pwoteje ak otantifikasyon ak verifikasyon dwa aksè.</p></div></section>
   </main>
 
+  <section class="community-banner" aria-label="Kominote BOUSPAM">
+    <div class="community-banner-inner">
+      <div class="community-copy"><b>💬 Antre nan kominote BOUSPAM lan</b><span>Rete enfòme sou nouvèl, anons ak èd pou kont ou.</span></div>
+      <div class="community-actions"><a class="group-btn" href="https://chat.whatsapp.com/GeUmA1RwVjfGuU44iRMWtM?mode=gi_t" target="_blank" rel="noopener noreferrer">📲 Gwoup WhatsApp</a><a class="btn primary" href="https://wa.me/50948458535" target="_blank" rel="noopener noreferrer">🆘 Kontakte sipò</a></div>
+    </div>
+  </section>
+
   <section id="support" class="support-section" aria-labelledby="supportTitle">
     <div class="support-card">
       <span class="eyebrow">NOU LA POU EDE W</span>
@@ -152,6 +173,7 @@
   </section>
   <img src="FC9C424D-6D0D-4A51-87EA-7899001F3511.png" alt="BOUSPAM" style="display:block;width:100%;max-width:500px;height:auto;max-height:250px;object-fit:contain;margin:20px auto;">
   <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
+  <a class="support-float" href="https://wa.me/50948458535" target="_blank" rel="noopener noreferrer" aria-label="Kontakte sipò BOUSPAM sou WhatsApp"><span>🆘</span><span class="float-label">Sipò BOUSPAM</span></a>
   <div id="toast" class="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
