@@ -1,0 +1,11 @@
+BOUSPAM — pake pou depo GitHub prive
+
+Pake sa a gen fichye sit la, dosye Cloudflare Pages Functions yo, dokiman ak SQL pwojè a.
+
+Sekirite:
+- Pa janm ajoute .env, .dev.vars, SUPABASE_SERVICE_ROLE_KEY oswa BOUSPAM_PAYMENT_CLIENT_SECRET nan GitHub.
+- Kle Supabase ki rele publishable/anon la fèt pou frontend; li pa menm bagay ak service_role key la.
+- Mete SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, BOUSPAM_PAYMENT_CLIENT_ID ak BOUSPAM_PAYMENT_CLIENT_SECRET nan Cloudflare Variables and Secrets.
+- SUPABASE_SERVICE_ROLE_KEY ak BOUSPAM_PAYMENT_CLIENT_SECRET dwe rete Secret.
+
+Pou telechaje sou GitHub: dekonprese ZIP sa a sou telefòn ou, epi telechaje sa ki anndan an nan depo prive BOUSPAM ou a. Pa telechaje ZIP la kòm yon sèl fichye si w vle Cloudflare itilize fichye sit yo dirèkteman.

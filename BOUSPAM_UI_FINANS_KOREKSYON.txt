@@ -1,0 +1,15 @@
+BOUSPAM — Amelyorasyon kont, depo ak retrè
+
+Sa ki chanje:
+- Apre BOUSPAM konfime kont lan aktive nan profiles.is_activated, bouton ak fòm aktivasyon 500 HTG yo kache.
+- Kont aktive yo wè de bouton prensipal: DEPO ak RETRÈ.
+- Bouton yo louvri fòm ki koresponn lan sèlman.
+- NatCash ak MonCash parèt kòm chwa vizib pou depo ak retrè.
+- Retrè a toujou mande minimòm 255 HTG ak nimewo reseptè 509XXXXXXXX.
+- Tout lòt fonksyon sit la, jwèt, referans, Supabase Auth, admin, logo ak CSS yo konsève.
+
+ENPÒTAN:
+1. Upload/deploye tout pwojè a jan li ye a sou Cloudflare Pages (pa upload ZIP la kòm yon sèl fichye nan GitHub).
+2. Kouri BOUSPAM_MONEY_METHODS_MIGRATION.sql nan Supabase SQL Editor pou demann depo yo konsève metòd NatCash/MonCash epi pou panel admin montre li.
+3. Depo yo toujou mande referans tranzaksyon an epi rete annatant jiskaske administratè a verifye epi apwouve yo. UI sa a pa pretann depo otomatik PLOP PLOP deja aktive.
+4. Pa mete SUPABASE_SERVICE_ROLE_KEY oswa BOUSPAM_PAYMENT_CLIENT_SECRET nan GitHub. Kenbe yo kòm Secrets nan Cloudflare.

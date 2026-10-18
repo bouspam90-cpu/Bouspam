@@ -1,26 +1,37 @@
-BOUSPAM — VÈSYON KI SEPARE AN 3 PAJ
+BOUSPAM — ENSTRIKSYON POU PAKÈ KONPLÈ A
 
-SA NOU CHANJE
-- index.html: Akèy sèlman, pi kout.
-- jeux.html: tout jwèt yo sou yon paj apa.
-- compte.html: enskripsyon, koneksyon, balans, aktivasyon, depo, retrè, referans ak administrasyon. Seksyon kont yo ka ouvri/fèmen pou paj la pa parèt twò long.
-- pages.css: estil adisyonèl pou twa paj yo; li chaje APRÈ style.css ou deja genyen an.
-- app.js: pataje menm lojik la sou 3 paj yo, ak ajisteman pou paj jwèt la mache san dashboard.
-- BOUSPAM_ADMIN_JEUX_REFERENCES.sql: menm script Supabase ki nan dènye pake a.
+FICHYE YO
+- index.html: paj Akèy
+- jeux.html: paj jwèt
+- bous.html: bous, balans ak istorik
+- compte.html: enskripsyon/koneksyon, aktivasyon, depo, retrè, referans ak paramèt kont
+- admin.html/admin.js: panel administratè sekirize ak jere demann finansye
+- functions/api/: Cloudflare Pages Functions pou aktivasyon peman ak retrè otomatik
+- style.css, pages.css, bouspam-4pages.css: aparans sit la
+- BOUSPAM_MONEY_ADMIN.sql: demann depo/retrè, rezèv balans ak retrè otomatik
+- BOUSPAM_REMAINING_FIXES.sql: limit esè jwèt gratis yo
 
-ETAP SOU GITHUB
-1. Telechaje/ouvri ZIP la.
-2. Mete/ranplase index.html.
-3. Ajoute nouvo fichiers jeux.html, compte.html ak pages.css.
-4. Ranplase app.js ak app.js ki nan pake sa a.
-5. PA ranplase supabase-config.js. PA efase foto/logo ou yo. PA ranplase style.css ou a.
-6. Kenbe admin.html ak admin.js jan yo ye a pou kounye a.
+CLOUDFLARE
+1. Mete tout fichye ki nan pakè a nan root pwojè Cloudflare Pages; index.html dwe nan root.
+2. Kenbe URL/publishable key Supabase ki deja la.
+3. Verifye Environment Variables/Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, BOUSPAM_PAYMENT_CLIENT_ID, BOUSPAM_PAYMENT_CLIENT_SECRET.
+4. SUPABASE_SERVICE_ROLE_KEY ak BOUSPAM_PAYMENT_CLIENT_SECRET dwe rete sekrè sou sèvè a; pa mete yo nan HTML/app.js.
+5. Redeplwaye epi verifye estati deployment lan.
 
-ETAP SUPABASE
-- SQL la pa egzekite otomatikman paske ou mete li sou GitHub. Louvri Supabase SQL Editor, revize script la, epi egzekite l sèlman si li koresponn ak bazdone ou a. Si li bay erè, pa kouri lòt SQL o aza; voye erè a egzak.
+SUPABASE
+1. Kouri BOUSPAM_MONEY_ADMIN.sql.
+2. Kouri BOUSPAM_REMAINING_FIXES.sql si limit esè jwèt gratis yo poko enstale.
+3. Pa relanse SQL referans yo san nesesite; fonksyon/triggers referans ki deja la dwe rete an plas.
 
-ENPÒTAN
-- Sit la pa mete ajou jis paske ZIP la prepare. Ou dwe mete fichye yo sou GitHub epi tann Pages fini pibliye.
-- NatCash pa konekte otomatikman. Aktivasyon/depo/retrè rete annatant jiskaske administratè a verifye peman an manyèlman.
-- Pwen jwèt yo se pwen sèlman, pa HTG.
-- Mwen pa t kapab li kontni piblik paryajlakay.com ak navigatè a. UpTop mwen te kapab wè ekran koneksyon kout li: nimewo telefòn, PIN, epi lyen enskripsyon. Estrikti BOUSPAM nan pake sa a itilize lide navigasyon senp, san kopye mak oswa konsepsyon egzak sit sa yo.
+JWÈT
+- Woulet BOUSPAM ak Secret Box se sèl jwèt ki nan kategori miz lajan; yo rete fèmen jiskaske rezilta ak settlement verifye sou sèvè.
+- XO, Wòch/Papye/Sizo, Kat mistè, Chèche objè kache ak lòt jwèt yo rete jwèt gratis ki bay pwen jwèt.
+- Pwen jwèt yo rete separe ak balans HTG a.
+
+RETRÈ
+- Manm nan chwazi NatCash oswa MonCash, montan minimòm 255 HTG ak nimewo 509XXXXXXXX.
+- Balans lan rezève pandan demann lan annatant.
+- Admin lan lanse retrè otomatik la; se sèlman konfimasyon success nan API a ki fini tranzaksyon an.
+- Si admin lan refize demann lan, balans rezève a retounen nan bous manm nan.
+
+Pa gen okenn tès live oswa deplwaman ki garanti pa fichye sa a pou kont li. Fè tès ak kont kontwole anvan lansman piblik.

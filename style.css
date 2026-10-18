@@ -45,3 +45,75 @@ main{max-width:1100px;margin:0 auto;padding:30px 22px 50px}.welcome{display:grid
 body{padding-bottom:78px}footer{margin-bottom:4px}
 @media(min-width:721px){.bottom-nav{bottom:12px;border:1px solid #dce8f7;border-radius:18px}.support-float{bottom:92px}}
 @media(max-width:720px){.bottom-nav{width:100%;border-radius:18px 18px 0 0}.support-float{right:14px;bottom:88px;padding:11px 15px}.support-float>span:last-child{font-size:13px}body{padding-bottom:82px}}
+
+
+/* BOUSPAM navigation polish: support the markup used by the page HTML */
+.bouspam-nav .bottom-link{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:12px;background:transparent;color:#6d7d96;text-decoration:none;font:inherit;cursor:pointer}
+.bouspam-nav .bottom-link>span{font-size:21px;line-height:1.1}
+.bouspam-nav .bottom-link small{font-size:11px;font-weight:800}
+.bouspam-nav .bottom-link.active{color:var(--blue);background:#eaf4ff}
+body:has(.bouspam-nav){padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+@media(max-width:520px){.bouspam-nav{width:100%;border-radius:16px 16px 0 0;padding-left:8px;padding-right:8px}.bouspam-nav .bottom-link{min-height:50px}}
+
+/* BOUSPAM responsive polish: mobile-first home */
+html, body { max-width:100%; overflow-x:hidden; }
+.topbar { width:100%; box-sizing:border-box; gap:12px; }
+.brand { min-width:0; display:flex; align-items:center; gap:10px; }
+.brand-mark { display:grid; place-items:center; width:42px; height:42px; flex:0 0 42px; border-radius:13px; color:#fff; font-weight:900; font-size:26px; background:linear-gradient(145deg,#0b65d8,#084ba8); box-shadow:0 5px 14px #0b65d833; }
+.brand small { font-size:12px; }
+.home-page { width:100%; max-width:1100px; box-sizing:border-box; }
+.welcome, .features, .quick-links { min-width:0; }
+.hero-copy, .hero-card { min-width:0; }
+.hero-actions { flex-wrap:wrap; }
+.quick-card { min-width:0; overflow-wrap:anywhere; }
+@media (max-width:720px) {
+  main.page-shell { padding:18px 14px 110px !important; }
+  .welcome { grid-template-columns:minmax(0,1fr) !important; gap:18px !important; padding:26px 20px !important; border-radius:22px !important; }
+  h1 { font-size:clamp(34px,9vw,44px) !important; letter-spacing:-1.2px !important; overflow-wrap:normal; }
+  .hero-copy p { font-size:15px; line-height:1.55; }
+  .hero-actions { display:grid !important; grid-template-columns:1fr 1fr; gap:9px !important; }
+  .hero-actions .btn { text-align:center; padding:12px 10px; }
+  .hero-actions .btn:last-child { grid-column:1/-1; }
+  .hero-card { padding:18px !important; }
+  .features { grid-template-columns:1fr !important; gap:10px !important; }
+  .features article { padding:16px !important; }
+  .quick-links { grid-template-columns:1fr !important; gap:10px !important; }
+  .group-float { right:12px !important; bottom:145px !important; padding:8px 11px !important; font-size:12px !important; }
+  .support-float { right:12px !important; bottom:92px !important; padding:8px 11px !important; font-size:12px !important; }
+  .bottom-nav { width:100% !important; max-width:100% !important; }
+}
+
+/* Aide referans rouge + messages d’inscription visibles au-dessus des boutons flottants */
+.referral-helper{color:#c62828!important;font-size:12px;line-height:1.45;font-weight:700}
+.signup-feedback{display:none;margin:0;padding:12px 14px;border:1px solid #b7dfc5;border-radius:12px;background:#effaf2;color:#126b36;font-size:14px;font-weight:800;line-height:1.5}
+.signup-feedback.show{display:block}
+.toast{z-index:100;bottom:calc(105px + env(safe-area-inset-bottom));}
+@media(max-width:720px){.toast{left:12px;right:12px;max-width:none;width:auto;transform:translateY(20px);bottom:calc(105px + env(safe-area-inset-bottom))}.toast.show{transform:translateY(0)}}
+
+
+/* BOUSPAM refresh: blue bottom navigation + moving welcome ticker */
+.bouspam-welcome-ticker{position:relative;z-index:5;overflow:hidden;width:100%;background:linear-gradient(100deg,#073c8d,#0b65d8 50%,#0875e8);color:#fff;border-bottom:1px solid #72b7ff;box-shadow:0 5px 16px #0b65d81c}
+.bouspam-ticker-track{display:flex;min-height:42px;align-items:center;white-space:nowrap;overflow:hidden}
+.bouspam-ticker-track span{display:inline-block;padding-left:100%;font-weight:900;font-size:13px;letter-spacing:.35px;animation:bouspamTicker 24s linear infinite}
+@keyframes bouspamTicker{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+.bouspam-welcome-ticker:hover .bouspam-ticker-track span{animation-play-state:paused}
+.bottom-nav.bouspam-nav{background:linear-gradient(145deg,#0a4eaa,#0b65d8 58%,#084ba8)!important;border:1px solid #4a9aff!important;border-bottom:0!important;box-shadow:0 -8px 28px #073c8d30!important;backdrop-filter:blur(12px)}
+.bouspam-nav .bottom-link{color:#d9eaff!important;background:transparent!important;transition:background .2s,transform .2s,color .2s}
+.bouspam-nav .bottom-link .nav-icon{display:grid;place-items:center;width:31px;height:29px;border-radius:10px;background:#ffffff17;transition:background .2s,transform .2s}
+.bouspam-nav .bottom-link .nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bouspam-nav .bottom-link small{font-size:11px;font-weight:850;letter-spacing:.2px}
+.bouspam-nav .bottom-link.active{color:#fff!important;background:#ffffff20!important;box-shadow:inset 0 0 0 1px #ffffff36}
+.bouspam-nav .bottom-link.active .nav-icon{background:#fff;color:#0b65d8;transform:translateY(-2px);box-shadow:0 3px 10px #001e5030}
+.bouspam-nav .bottom-link:active{transform:scale(.97)}
+@media(prefers-reduced-motion:reduce){.bouspam-ticker-track span{animation:none;padding-left:12px;white-space:normal}.bouspam-ticker-track{min-height:42px}}
+
+/* BOUSPAM requested red bottom navigation with visible labels */
+.bottom-nav.bouspam-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;background:linear-gradient(145deg,#8f0018,#d10d2d 55%,#a30020)!important;border:1px solid #ff7186!important;border-bottom:0!important;box-shadow:0 -8px 28px #75001635!important}
+.bouspam-nav .bottom-link{color:#ffe6ea!important;background:transparent!important;min-height:56px!important;gap:4px!important}
+.bouspam-nav .bottom-link .nav-icon{display:grid;place-items:center;width:32px;height:29px;border-radius:9px;background:#ffffff20!important}
+.bouspam-nav .bottom-link .nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bouspam-nav .bottom-link small{display:block!important;visibility:visible!important;opacity:1!important;color:inherit!important;font-size:12px!important;font-weight:900!important;line-height:1.2;letter-spacing:.15px}
+.bouspam-nav .bottom-link.active{color:#fff!important;background:#ffffff24!important;box-shadow:inset 0 0 0 1px #ffffff45!important}
+.bouspam-nav .bottom-link.active .nav-icon{background:#fff!important;color:#b00627!important;transform:translateY(-1px)}
+@media(max-width:380px){.bouspam-nav .bottom-link small{font-size:11px!important}.bouspam-nav{padding-left:5px!important;padding-right:5px!important;gap:2px!important}}
+

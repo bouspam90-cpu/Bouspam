@@ -51,3 +51,31 @@ body{background:linear-gradient(180deg,#f7faff 0%,#f2f6fc 100%)}
  .support-actions .btn{width:100%}
  .home-trust span{font-size:10px}
 }
+
+
+/* BOUSPAM refresh: blue bottom navigation + moving welcome ticker */
+.bouspam-welcome-ticker{position:relative;z-index:5;overflow:hidden;width:100%;background:linear-gradient(100deg,#073c8d,#0b65d8 50%,#0875e8);color:#fff;border-bottom:1px solid #72b7ff;box-shadow:0 5px 16px #0b65d81c}
+.bouspam-ticker-track{display:flex;min-height:42px;align-items:center;white-space:nowrap;overflow:hidden}
+.bouspam-ticker-track span{display:inline-block;padding-left:100%;font-weight:900;font-size:13px;letter-spacing:.35px;animation:bouspamTicker 24s linear infinite}
+@keyframes bouspamTicker{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+.bouspam-welcome-ticker:hover .bouspam-ticker-track span{animation-play-state:paused}
+.bottom-nav.bouspam-nav{background:linear-gradient(145deg,#0a4eaa,#0b65d8 58%,#084ba8)!important;border:1px solid #4a9aff!important;border-bottom:0!important;box-shadow:0 -8px 28px #073c8d30!important;backdrop-filter:blur(12px)}
+.bouspam-nav .bottom-link{color:#d9eaff!important;background:transparent!important;transition:background .2s,transform .2s,color .2s}
+.bouspam-nav .bottom-link .nav-icon{display:grid;place-items:center;width:31px;height:29px;border-radius:10px;background:#ffffff17;transition:background .2s,transform .2s}
+.bouspam-nav .bottom-link .nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bouspam-nav .bottom-link small{font-size:11px;font-weight:850;letter-spacing:.2px}
+.bouspam-nav .bottom-link.active{color:#fff!important;background:#ffffff20!important;box-shadow:inset 0 0 0 1px #ffffff36}
+.bouspam-nav .bottom-link.active .nav-icon{background:#fff;color:#0b65d8;transform:translateY(-2px);box-shadow:0 3px 10px #001e5030}
+.bouspam-nav .bottom-link:active{transform:scale(.97)}
+@media(prefers-reduced-motion:reduce){.bouspam-ticker-track span{animation:none;padding-left:12px;white-space:normal}.bouspam-ticker-track{min-height:42px}}
+
+/* BOUSPAM requested red bottom navigation with visible labels */
+.bottom-nav.bouspam-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;background:linear-gradient(145deg,#8f0018,#d10d2d 55%,#a30020)!important;border:1px solid #ff7186!important;border-bottom:0!important;box-shadow:0 -8px 28px #75001635!important}
+.bouspam-nav .bottom-link{color:#ffe6ea!important;background:transparent!important;min-height:56px!important;gap:4px!important}
+.bouspam-nav .bottom-link .nav-icon{display:grid;place-items:center;width:32px;height:29px;border-radius:9px;background:#ffffff20!important}
+.bouspam-nav .bottom-link .nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bouspam-nav .bottom-link small{display:block!important;visibility:visible!important;opacity:1!important;color:inherit!important;font-size:12px!important;font-weight:900!important;line-height:1.2;letter-spacing:.15px}
+.bouspam-nav .bottom-link.active{color:#fff!important;background:#ffffff24!important;box-shadow:inset 0 0 0 1px #ffffff45!important}
+.bouspam-nav .bottom-link.active .nav-icon{background:#fff!important;color:#b00627!important;transform:translateY(-1px)}
+@media(max-width:380px){.bouspam-nav .bottom-link small{font-size:11px!important}.bouspam-nav{padding-left:5px!important;padding-right:5px!important;gap:2px!important}}
+.wallet-withdrawal-form{display:grid;gap:10px;margin-top:12px}.wallet-withdrawal-form label{display:grid;gap:6px;font-size:13px;font-weight:700}.wallet-withdrawal-form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--text)}.wallet-withdrawal-form small{color:var(--muted)}

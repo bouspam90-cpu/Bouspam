@@ -37,14 +37,14 @@ const UI_TRANSLATIONS = {
     "password login label":"Modpas","login note":"Koneksyon sa a sèvi ak Supabase Auth.",
     "dashboard eyebrow":"ESPAS OU","logout":"Dekonekte","available balance":"Balans disponib",
     "activate":"Aktive kont · 500 HTG","withdraw":"Mande retrè",
-    "natcash notice":"NatCash: Entegrasyon peman an poko aktive. Pa gen tranzaksyon reyèl ki fèt nan vèsyon sa a.",
+    "natcash notice":"Peman yo pase nan sèvis PLOP PLOP la. Kont lan aktive sèlman apre verifikasyon tranzaksyon an.",
     "invite title":"🔗 Envite zanmi ou","invite desc":"Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM.",
     "referral link label":"Lyen referans pèsonèl ou","copy link":"Kopye lyen an",
-    "referral promo":"💰 Règ Referans: 255 HTG pu referans yo tout. Otan ou envite plis zanmi ki aktive, se plis kòb ou ka touche ak BOUSPAM!",
+    "referral promo":"💰 Règ referans: 255 HTG pou chak 2 referans ki valide (kont yo aktive).",
     "share referral":"📲 PATAJE LYEN REFERANS MWEN",
     "games eyebrow":"PLEZI AK DEFI","games title":"🎮 Jwèt BOUSPAM",
     "games desc":"Jwe, fè defi, epi ranmase pwen jwèt.",
-    "games warning":"Pwen sa yo se pwen jwèt sèlman. Yo pa HTG, yo pa ka retire, epi yo pa konekte ak bous la nan vèsyon sa a.",
+    "games warning":"Pwen jwèt BOUSPAM",
     "game roulette":"Woulet BOUSPAM","game number":"Devinèt nimewo","game quiz":"Kesyon entèlijans",
     "game tictactoe":"Tic-Tac-Toe","game word":"Devinèt mo","game rps":"Wòch, papye, sizo",
     "game daily":"Defi chak jou","game cards":"Kat mistè","game box":"Bwat sipriz",
@@ -79,14 +79,14 @@ const UI_TRANSLATIONS = {
     "password login label":"Mot de passe","login note":"La connexion utilise Supabase Auth.",
     "dashboard eyebrow":"VOTRE ESPACE","logout":"Se déconnecter","available balance":"Solde disponible",
     "activate":"Activer le compte · 500 HTG","withdraw":"Demander un retrait",
-    "natcash notice":"NatCash : l’intégration des paiements n’est pas encore activée. Aucune transaction réelle n’est effectuée dans cette version.",
+    "natcash notice":"Les paiements passent par le service PLOP PLOP. Le compte est activé uniquement après vérification de la transaction.",
     "invite title":"🔗 Invitez vos amis","invite desc":"Partagez votre lien de parrainage pour inviter de nouveaux membres sur BOUSPAM.",
     "referral link label":"Votre lien de parrainage personnel","copy link":"Copier le lien",
-    "referral promo":"💰 Règle de parrainage : 255 HTG pour les parrainages. Plus vous invitez d’amis dont le compte est activé, plus vous pouvez gagner avec BOUSPAM !",
+    "referral promo":"💰 Règle de parrainage : 255 HTG pour 2 filleuls validés (comptes activés).",
     "share referral":"📲 PARTAGER MON LIEN DE PARRAINAGE",
     "games eyebrow":"JEUX ET DÉFIS","games title":"🎮 Jeux BOUSPAM",
     "games desc":"Jouez, relevez des défis et gagnez des points de jeu.",
-    "games warning":"Ces points sont uniquement des points de jeu. Ils ne sont pas en HTG, ne peuvent pas être retirés et ne sont pas reliés au portefeuille dans cette version.",
+    "games warning":"Points de jeu BOUSPAM",
     "game roulette":"Roue BOUSPAM","game number":"Devinette numérique","game quiz":"Quiz de connaissances",
     "game tictactoe":"Morpion","game word":"Devinette de mots","game rps":"Pierre, papier, ciseaux",
     "game daily":"Défi quotidien","game cards":"Cartes mystère","game box":"Boîte surprise",
@@ -121,14 +121,14 @@ const UI_TRANSLATIONS = {
     "password login label":"Password","login note":"This login uses Supabase Auth.",
     "dashboard eyebrow":"YOUR SPACE","logout":"Log out","available balance":"Available balance",
     "activate":"Activate account · 500 HTG","withdraw":"Request withdrawal",
-    "natcash notice":"NatCash: payment integration is not active yet. No real transactions take place in this version.",
+    "natcash notice":"Payments are processed through PLOP PLOP. The account is activated only after the transaction is verified.",
     "invite title":"🔗 Invite your friends","invite desc":"Share your referral link to invite new members to BOUSPAM.",
     "referral link label":"Your personal referral link","copy link":"Copy link",
-    "referral promo":"💰 Referral rule: 255 HTG for referrals. The more friends you invite who activate their accounts, the more you can earn with BOUSPAM!",
+    "referral promo":"💰 Referral rule: 255 HTG for every 2 referrals whose accounts are activated.",
     "share referral":"📲 SHARE MY REFERRAL LINK",
     "games eyebrow":"FUN AND CHALLENGES","games title":"🎮 BOUSPAM Games",
     "games desc":"Play challenges and collect game points.",
-    "games warning":"These are game points only. They are not HTG, cannot be withdrawn, and are not connected to the wallet in this version.",
+    "games warning":"BOUSPAM game points",
     "game roulette":"BOUSPAM Wheel","game number":"Number Guess","game quiz":"Knowledge Quiz",
     "game tictactoe":"Tic-Tac-Toe","game word":"Word Puzzle","game rps":"Rock, Paper, Scissors",
     "game daily":"Daily Challenge","game cards":"Mystery Cards","game box":"Surprise Box",
@@ -321,9 +321,10 @@ function setSignedOutView() {
   currentUser = null;
   panels.forEach((p) => $("#" + p)?.classList.add("hidden"));
   $("#dashboard")?.classList.add("hidden");
+  $(".auth-shortcuts")?.classList.remove("hidden");
   $("#welcome")?.classList.remove("hidden");
   $(".features")?.classList.remove("hidden");
-  $("#adminInfo")?.classList.remove("hidden");
+  $("#adminInfo")?.classList.add("hidden");
 }
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({
@@ -384,6 +385,7 @@ async function loadDashboard(user) {
   $("#welcome")?.classList.add("hidden");
   $(".features")?.classList.add("hidden");
   $("#adminInfo")?.classList.add("hidden");
+  $(".auth-shortcuts")?.classList.add("hidden");
   $("#dashboard")?.classList.remove("hidden");
   const meta = user.user_metadata || {};
   if ($("#userName")) $("#userName").textContent = meta.full_name || user.email || "zanmi";
@@ -391,6 +393,12 @@ async function loadDashboard(user) {
   $("#activity").textContent = "Ap chaje aktivite…";
   const { data: profile, error: profileError } = await db.from("profiles").select("is_activated").eq("id", user.id).maybeSingle();
   const isActivated = !profileError && profile !== null && profile.is_activated === true;
+  // Apre aktivasyon, retire nèt bouton/fòm aktivasyon yo epi montre sèlman aksyon bous la.
+  $("#activationActions")?.classList.toggle("hidden", isActivated);
+  $("#activationNotice")?.classList.toggle("hidden", isActivated);
+  $("#activationPaymentForm")?.classList.toggle("hidden", isActivated);
+  $("#walletActions")?.classList.toggle("hidden", !isActivated);
+  $("#walletFinancePanels")?.classList.toggle("hidden", !isActivated);
   updateReferralLink(user, isActivated);
   const { data: wallet, error: walletError } = await db.from("wallets").select("balance,currency").eq("user_id", user.id).maybeSingle();
   if (walletError) {
@@ -473,14 +481,40 @@ $("#registerForm")?.addEventListener("submit", async (event) => {
   const submitButton = event.target.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
   try {
-    const { data, error } = await db.auth.signUp({ email, password, options: { data: userMetadata } });
-    if (error) { toast("Enskripsyon pa reyisi: " + error.message); return; }
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userMetadata,
+        // Apre verifikasyon an, retounen sou paj koneksyon BOUSPAM lan.
+        emailRedirectTo: new URL("index.html?open=login", window.location.href).href
+      }
+    });
+    if (error) {
+      const raw = String(error.message || "").toLowerCase();
+      if (raw.includes("rate limit") || raw.includes("email rate")) {
+        toast("Supabase limite kantite imèl verifikasyon yo pou kounye a. Tann yon ti tan anvan ou eseye ankò, oswa kontakte sipò.");
+      } else if (raw.includes("already registered") || raw.includes("user already")) {
+        toast("Imèl sa a deja gen yon kont. Eseye konekte pito.");
+      } else if (raw.includes("redirect") || raw.includes("not allowed")) {
+        toast("Supabase pa otorize lyen retou a. Ajoute https://bouspam.pages.dev/** nan Auth > URL Configuration > Redirect URLs.");
+      } else if (raw.includes("smtp") || raw.includes("email provider") || raw.includes("sending email")) {
+        toast("Supabase pa rive voye imèl verifikasyon an. Verifye Auth > SMTP Settings oswa limit imèl la.");
+      } else {
+        console.error("Supabase signup error:", error.message);
+        toast("Enskripsyon pa reyisi: " + String(error.message || "Erè Supabase."));
+      }
+      return;
+    }
     if (data.session && data.user) {
       await processReferral(data.user);
       toast("Kont ou kreye avèk siksè. N ap ouvri kont ou...");
       window.location.href = "index.html";
     } else {
-      toast("Kont la kreye. Verifye imèl ou anvan ou konekte si yo mande sa.");
+      const feedback = document.querySelector("#signupFeedback");
+      const message = "Kont la kreye, men ou poko konekte. Tcheke bwat resepsyon imèl ou a ak Spam/Junk pou mesaj verifikasyon Supabase la. Si li pa vini, kontakte sipò oswa verifye paramèt imèl Supabase yo.";
+      if (feedback) { feedback.textContent = message; feedback.classList.add("show"); }
+      toast("Kont la kreye. Tcheke imèl ou ak Spam/Junk pou verifikasyon.");
       event.target.reset();
       if (document.querySelector("#login")) showPanel("login");
       else setTimeout(() => { window.location.href = "index.html?open=login"; }, 1200);
@@ -498,6 +532,12 @@ $("#loginForm")?.addEventListener("submit", async (event) => {
   try {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
     if (error) { toast("Koneksyon pa reyisi: " + error.message); return; }
+    // Apre koneksyon, montre panel administratè a dirèkteman sèlman si Supabase konfime dwa admin yo.
+    const { data: adminCheck, error: adminCheckError } = await db.rpc("bouspam_admin_dashboard");
+    if (!adminCheckError && adminCheck?.is_admin === true) {
+      window.location.href = "admin.html";
+      return;
+    }
     await processReferral(data.user); await loadDashboard(data.user); toast("Ou konekte sou BOUSPAM.");
   } catch (error) {
     console.error("Erè koneksyon:", error); toast("Yon erè rive pandan koneksyon an.");
@@ -510,12 +550,159 @@ $("#logout")?.addEventListener("click", async () => {
   }
   setSignedOutView(); toast("Ou dekonekte.");
 });
-$("#activateBtn")?.addEventListener("click", () => toast("Peman 500 HTG poko aktive. Pa voye lajan jiskaske peman ofisyèl ak verifikasyon yo konekte."));
-$("#withdrawBtn")?.addEventListener("click", () => toast("Retrè minimòm 255 HTG poko aktive. Sistèm nan bezwen validasyon sou sèvè ak entegrasyon peman ofisyèl."));
+function openFinancePanel(panel) {
+  const details = $("#financeDetails");
+  if (details) details.open = true;
+  $("#depositFormPanel")?.classList.toggle("hidden", panel !== "deposit");
+  $("#withdrawalFormPanel")?.classList.toggle("hidden", panel !== "withdrawal");
+  const target = panel === "deposit" ? $("#depositFormPanel") : $("#withdrawalFormPanel");
+  target?.scrollIntoView({behavior:"smooth", block:"center"});
+}
+$("#activateBtn")?.addEventListener("click", () => {
+  const details = $("#financeDetails");
+  if (details) { details.open = true; details.scrollIntoView({behavior:"smooth", block:"start"}); }
+  $("#activationPaymentForm")?.scrollIntoView({behavior:"smooth", block:"center"});
+});
+$("#depositBtn")?.addEventListener("click", () => openFinancePanel("deposit"));
+$("#withdrawBtn")?.addEventListener("click", () => openFinancePanel("withdrawal"));
+async function submitMoneyRequest(form, type, amountFromForm) {
+  const status = $("#moneyActionStatus");
+  if (!db || !currentUser) { toast("Konekte sou kont ou anvan ou soumèt demann lan."); return; }
+  const { data: activeProfile, error: activeProfileError } = await db.from("profiles").select("is_activated").eq("id", currentUser.id).maybeSingle();
+  if (activeProfileError || activeProfile?.is_activated !== true) { toast("Ou dwe aktive kont ou anvan ou fè depo oswa retrè."); return; }
+  const data = new FormData(form);
+  let reference = String(data.get("reference") || "").trim();
+  const amount = Number(amountFromForm);
+  const method = String(data.get("method") || "natcash");
+  if (type === "withdrawal") reference = reference.replace(/\D/g, "");
+  const validMethod = ["natcash","moncash"].includes(method);
+  if (!Number.isFinite(amount) || amount <= 0 || reference.length < 3 || !validMethod || (type === "withdrawal" && (!/^509\d{8}$/.test(reference) || amount < 255))) {
+    if (status) status.textContent = type === "withdrawal" ? "Verifye kantite a (minimòm 255 HTG), chwazi NatCash oswa MonCash, epi antre nimewo 509XXXXXXXX la." : "Verifye kantite depo a, chwazi NatCash oswa MonCash, epi antre referans tranzaksyon an.";
+    return;
+  }
+  const button = form.querySelector('button[type="submit"]');
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ap voye demann lan nan bazdone a…";
+  try {
+    const { data: requestId, error } = await db.rpc("bouspam_create_money_request", {
+      p_request_type: type, p_amount: amount, p_reference: reference, p_method: method
+    });
+    if (error) throw error;
+    if (status) status.textContent = "Demann lan anrejistre pou administratè a revize. Pou retrè, balans lan rezève jiskaske demann lan fini. Nimewo demann: " + String(requestId || "OK");
+    form.reset();
+    await loadDashboard(currentUser);
+  } catch (error) {
+    console.error("Demann finansye pa reyisi:", error);
+    if (status) status.textContent = "Demann lan pa pase: " + String(error.message || "Erè bazdone.");
+  } finally { if (button) button.disabled = false; }
+}
+const paymentMethodSelect = document.querySelector("#activationPaymentMethod");
+const activationPhoneWrap = document.querySelector("#activationPhoneWrap");
+const activationPhoneInput = document.querySelector("#activationPhone");
+function updateUssdPhoneVisibility() {
+  const needsPhone = ["natcash_ussd", "moncash_ussd"].includes(paymentMethodSelect?.value);
+  activationPhoneWrap?.classList.toggle("hidden", !needsPhone);
+  if (activationPhoneInput) activationPhoneInput.required = needsPhone;
+}
+paymentMethodSelect?.addEventListener("change", updateUssdPhoneVisibility);
+updateUssdPhoneVisibility();
+async function callBouspamPayment(path, payload) {
+  if (!db || !currentUser) throw new Error("Konekte sou kont ou anvan ou fè peman.");
+  const { data: sessionData, error: sessionError } = await db.auth.getSession();
+  if (sessionError || !sessionData.session?.access_token) throw new Error("Sesyon an fini. Konekte ankò.");
+  let response;
+  try {
+    response = await fetch(path, { method:"POST", headers:{"Content-Type":"application/json", "Authorization":"Bearer " + sessionData.session.access_token}, body:JSON.stringify(payload) });
+  } catch (_) {
+    throw new Error("BOUSPAM pa rive kontakte sèvè peman an. Verifye koneksyon entènèt la epi eseye ankò.");
+  }
+  const raw = await response.text();
+  let result = {};
+  try { result = raw ? JSON.parse(raw) : {}; } catch (_) { result = {}; }
+  if (!response.ok || result.ok === false) {
+    if (result.error || result.message) throw new Error(String(result.error || result.message));
+    if (response.status === 404) throw new Error("API peman BOUSPAM lan pa jwenn (HTTP 404). Cloudflare Pages Functions yo ka pa deplwaye. Redeplwaye tout ZIP BOUSPAM la nan menm pwojè Cloudflare Pages la, avèk dosye functions/ la nan rasin pwojè a.");
+    if (response.status >= 500) throw new Error("Sèvè peman BOUSPAM lan bay erè HTTP " + response.status + ". Verifye Cloudflare Pages Functions > Logs pou jwenn detay la.");
+    const detail = raw && !raw.trim().startsWith("<") ? raw.slice(0,180) : "";
+    throw new Error("Sèvis peman an retounen HTTP " + response.status + (detail ? ": " + detail : ". Pa gen detay erè nan repons lan."));
+  }
+  if (!result || typeof result !== "object" || Array.isArray(result) || !Object.keys(result).length) {
+    throw new Error("Sèvè peman an pa retounen done JSON ki valab. Verifye Cloudflare Pages Functions yo ak Logs yo.");
+  }
+  return result;
+}
+async function verifyBouspamPayment(reference, quiet=false, transactionId="") {
+  const status = document.querySelector("#activationPaymentStatus");
+  if (status && !quiet) status.textContent = "Ap verifye peman an dirèkteman nan sèvis peman an…";
+  try {
+    const verifyPayload = reference ? { reference } : { transaction_id: transactionId };
+    const result = await callBouspamPayment("/api/payment-verify", verifyPayload);
+    if (result.activated) {
+      if (status) status.textContent = "✅ Peman konfime. Kont BOUSPAM ou aktive!";
+      const u = new URL(window.location.href); u.searchParams.delete("payment_return"); u.searchParams.delete("ref"); u.searchParams.delete("refference_id"); u.searchParams.delete("id_transaction"); u.searchParams.delete("statut"); history.replaceState({}, "", u.toString());
+      if (currentUser) await loadDashboard(currentUser);
+      toast("Peman konfime. Kont ou aktive.");
+      return true;
+    }
+    if (status && !quiet) status.textContent = "Peman an poko konfime. Referans BOUSPAM: " + reference + ". Eseye verifye ankò apre peman an fini.";
+    return false;
+  } catch (error) {
+    if (status && !quiet) status.textContent = "Nou poko kapab konfime peman an: " + String(error.message || "Erè");
+    return false;
+  }
+}
+window.verifyBouspamPayment = verifyBouspamPayment;
+$("#activationPaymentForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget, button = form.querySelector('button[type="submit"]'), status = document.querySelector("#activationPaymentStatus");
+  if (!db || !currentUser) { toast("Konekte sou kont ou anvan ou aktive kont lan."); return; }
+  const data = new FormData(form), method = String(data.get("payment_method") || "natcash");
+  const phone = String(data.get("phone_number") || "").trim();
+  if (["natcash_ussd", "moncash_ussd"].includes(method) && phone.length < 8) { if(status) status.textContent="Antre nimewo telefòn ou pou peman USSD."; return; }
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ap kreye tranzaksyon 500 HTG la…";
+  try {
+    const result = await callBouspamPayment("/api/payment-create", { type:"activation", amount:500, payment_method:method, phone_number:phone });
+    if (result.reference) { sessionStorage.setItem("bouspam_pending_payment", result.reference); }
+    if (result.transaction_id) { sessionStorage.setItem("bouspam_pending_transaction_id", result.transaction_id); }
+    if (result.url) { if(status) status.textContent="Tranzaksyon an pare. W ap voye sou paj peman an…"; window.location.assign(result.url); return; }
+    if (status) status.textContent = "Demann peman an kreye. Swiv enstriksyon ki vini sou telefòn ou. Referans BOUSPAM: " + result.reference + ". Ap verifye peman an…";
+    // USSD/telefòn: verifye plizyè fwa; kont lan pa aktive jiskaske API a konfime li.
+    for (let i=0; i<6; i++) { await new Promise(r=>setTimeout(r,5000)); if(await verifyBouspamPayment(result.reference,true)) break; }
+    if (status && status.textContent.includes("Ap verifye peman an")) status.textContent = "Peman an toujou annatant. Kenbe referans sa a: " + result.reference + ". Peze bouton an ankò pou verifye pita.";
+    await loadDashboard(currentUser);
+  } catch (error) {
+    console.error("BOUSPAM payment create error", error);
+    if (status) status.textContent = "Peman an pa t ka kòmanse: " + String(error.message || "Erè");
+  } finally { if (button) button.disabled = false; }
+});
+const paymentVerifyButton = document.createElement("button");
+paymentVerifyButton.type = "button"; paymentVerifyButton.className = "btn outline full"; paymentVerifyButton.textContent = "Verifye yon peman ki deja fèt";
+paymentVerifyButton.addEventListener("click", async()=>{ const params=new URLSearchParams(location.search); const ref=sessionStorage.getItem("bouspam_pending_payment") || params.get("ref") || params.get("refference_id") || params.get("reference_id") || ""; const tx=sessionStorage.getItem("bouspam_pending_transaction_id") || params.get("id_transaction") || params.get("transaction_id") || ""; if(!ref && !tx){const st=document.querySelector("#activationPaymentStatus");if(st)st.textContent="Pa gen referans oswa nimewo tranzaksyon annatant sou aparèy sa a.";return;} await verifyBouspamPayment(ref,false,tx); });
+document.querySelector("#activationPaymentForm")?.append(paymentVerifyButton);
+
+$("#depositForm")?.addEventListener("submit", (event) => {
+  event.preventDefault(); const amount = Number(new FormData(event.currentTarget).get("amount")); submitMoneyRequest(event.currentTarget, "deposit", amount);
+});
+$("#withdrawalForm")?.addEventListener("submit", (event) => {
+  event.preventDefault(); const amount = Number(new FormData(event.currentTarget).get("amount")); submitMoneyRequest(event.currentTarget, "withdrawal", amount);
+});
 $("#langBtn")?.addEventListener("click", cycleLanguage);
 applyLanguage(currentLanguage());
 const pageParams = new URLSearchParams(window.location.search);
-if (pageParams.get("open") === "login" && document.querySelector("#login")) showPanel("login");
+// Lè yon moun rive ak lyen referans, ouvri enskripsyon an epi mete kòd la.
+const incomingReferrerId = extractReferrerId(pageParams.get("ref"));
+if (incomingReferrerId && document.querySelector("#registerForm")) {
+  const referralInput = document.querySelector("#registerForm input[name='referral']");
+  if (referralInput) {
+    referralInput.value = incomingReferrerId;
+    referralInput.readOnly = true;
+    referralInput.setAttribute("aria-describedby", "referralAutoNotice");
+  }
+  showPanel("register");
+} else if (pageParams.get("open") === "login" && document.querySelector("#login")) {
+  showPanel("login");
+}
 const createAccountLink = document.querySelector("[data-create-account]");
 if (createAccountLink && pageParams.has("ref")) createAccountLink.href = "inscription.html?ref=" + encodeURIComponent(pageParams.get("ref"));
 (async () => {
@@ -525,6 +712,21 @@ if (createAccountLink && pageParams.has("ref")) createAccountLink.href = "inscri
   if (data.session) {
     if (location.pathname.toLowerCase().endsWith("inscription.html")) { window.location.replace("index.html"); return; }
     await loadDashboard(data.session.user);
+    if (location.hash === "#financeDetails") {
+      const financeDetails = $("#financeDetails");
+      if (financeDetails) financeDetails.open = true;
+      const activeProfileResult = await db.from("profiles").select("is_activated").eq("id", data.session.user.id).maybeSingle();
+      if (activeProfileResult.data?.is_activated === true) openFinancePanel("deposit");
+      else $("#activationPaymentForm")?.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+    const params = new URLSearchParams(location.search);
+    const returnedRef = params.get("ref") || params.get("refference_id") || params.get("reference_id") || "";
+    const returnedTransactionId = params.get("id_transaction") || params.get("transaction_id") || "";
+    if (returnedRef) sessionStorage.setItem("bouspam_pending_payment", returnedRef);
+    if (returnedTransactionId) sessionStorage.setItem("bouspam_pending_transaction_id", returnedTransactionId);
+    if (params.get("payment_return") === "1" || params.get("statut") === "ok" || returnedTransactionId || returnedRef) {
+      if (returnedRef || returnedTransactionId) await verifyBouspamPayment(returnedRef, false, returnedTransactionId);
+    }
   }
 })();
 
@@ -677,7 +879,40 @@ function showGame(id) {
   views[id]();
   panel.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-document.querySelectorAll("[data-game]").forEach(button => button.addEventListener("click", () => showGame(button.dataset.game)));
+document.querySelectorAll("[data-game]").forEach(button => button.addEventListener("click", async () => {
+  if (button.dataset.moneyGame === "true") {
+    const panel = $("#gamePlay");
+    if (panel) { panel.classList.remove("hidden"); $("#gameTitle").textContent = button.querySelector("b")?.textContent || "Jwèt ki mande miz"; }
+    const body = $("#gameBody");
+    if (body) body.innerHTML = '<div class="notice"><b>Jwèt sa a klase kòm jwèt ak miz 50 oswa 100 HTG.</b><p>Entèfas la pare, men pa fè miz reyèl jiskaske fonksyon Supabase ki verifye jwèt la, debi miz la ak peman rekonpans lan enstale epi teste sou sèvè a. Sa pwoteje balans ou kont double debi oswa move peman.</p><label for="moneyWager">Chwazi miz la</label><select id="moneyWager"><option value="50">50 HTG</option><option value="100">100 HTG</option></select><button class="btn primary" id="moneyGameStart" type="button">Verifye disponiblite jwèt la</button><p id="moneyGameStatus" role="status"></p></div>';
+    $("#moneyGameStart")?.addEventListener("click", () => {
+      const status = $("#moneyGameStatus");
+      if (status) status.textContent = "Backend jwèt ki valide rezilta ak rekonpans lan poko nan deplwaman sa a. Pa gen miz ki te voye ni lajan ki dwe debite.";
+    });
+    gameFeedback("Jwèt la make kòm jwèt ak miz; sistèm nan dwe konfime backend la anvan li pran lajan.");
+    panel?.scrollIntoView({behavior:"smooth", block:"nearest"});
+    return;
+  }
+  if (!db || !currentUser) {
+    if (!$("#login")) { window.location.href = "compte.html#login"; return; }
+    showPanel("login");
+    gameFeedback("Konekte sou kont ou pou jwe epi anrejistre esè yo.");
+    return;
+  }
+  try {
+    const { data: remaining, error } = await db.rpc("bouspam_start_free_game_trial", { p_game_code: button.dataset.game });
+    if (error) throw error;
+    showGame(button.dataset.game);
+    gameFeedback("Esè sa a anrejistre sou sèvè a. Esè ki rete pou jodi a: " + Number(remaining));
+  } catch (error) {
+    console.error("Esè jwèt pa anrejistre:", error);
+    const panel = $("#gamePlay");
+    if (panel) panel.classList.remove("hidden");
+    const body = $("#gameBody");
+    if (body) body.innerHTML = '<div class="notice">'+escapeHtml(error.message || "Nou pa kapab verifye esè a.")+'<p>Si se premye fwa w ap itilize sistèm esè a, administratè a dwe kouri fichye BOUSPAM_REMAINING_FIXES.sql nan Supabase.</p></div>';
+    $("#gameTitle").textContent = button.querySelector("b")?.textContent || "Jwèt gratis";
+  }
+}));
 $("#closeGame")?.addEventListener("click", () => { if(raceTimer){clearInterval(raceTimer);raceTimer=null;} $("#gamePlay")?.classList.add("hidden"); });
 
 /* ----------------- BOUSPAM MONEY-GAME RPC (integration scaffold) -----------------
@@ -689,19 +924,19 @@ async function startBouspamGame(gameCode, wagerHTG = 0) {
     throw new Error("Konekte anvan ou jwe.");
   }
 
-  const allowedGames = [
-    "roulette", "secret_box", "tic_tac_toe",
-    "rps", "mystery_cards", "hidden_object"
-  ];
-  if (!allowedGames.includes(gameCode)) {
-    throw new Error("Kòd jwèt la pa valab pou jwèt lajan.");
+  const normalizedGameCode = gameCode;
+  const allowedGames = ["roulette", "secret_box"];
+  const gameAliases = { box: "secret_box", cards: "mystery_cards", hidden: "hidden_object" };
+  const finalGameCode = gameAliases[normalizedGameCode] || normalizedGameCode;
+  if (!allowedGames.includes(finalGameCode)) {
+    throw new Error("Se Woulet BOUSPAM ak Bwat sekrè sèlman ki otorize pou miz lajan an.");
   }
-  if (![0, 50, 100].includes(Number(wagerHTG))) {
-    throw new Error("Miz la dwe 0, 50 oswa 100 HTG.");
+  if (![50, 100].includes(Number(wagerHTG))) {
+    throw new Error("Miz la dwe 50 oswa 100 HTG.");
   }
 
   const { data: sessionId, error } = await db.rpc("bouspam_game_start", {
-    p_game_code: gameCode,
+    p_game_code: finalGameCode,
     p_wager_htg: Number(wagerHTG)
   });
   if (error) throw error;

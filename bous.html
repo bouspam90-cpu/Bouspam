@@ -17,7 +17,7 @@
     <span><small>Bous ou, nan men ou</small></span>
   </a>
   <a class="btn outline" href="compte.html">Kont mwen</a>
-</header>
+</header><div class="bouspam-welcome-ticker" role="status" aria-label="Mesaj BOUSPAM"><div class="bouspam-ticker-track"><span>💰🥰 BYENVINI NAN BOUS OU 💰🥰 CHAK OU PATAJE REFERANS OU, SE PLIS OU KA FÈ KÒB! &nbsp; ✨💙&nbsp;&nbsp;&nbsp; 💰🥰 BYENVINI NAN BOUS OU 💰🥰 CHAK OU PATAJE REFERANS OU, SE PLIS OU KA FÈ KÒB! &nbsp; ✨💙</span></div></div>
 
 <main class="page-shell wallet-page">
   <div class="page-kicker">BOUSPAM · ESPAS FINANSYE</div>
@@ -41,13 +41,18 @@
       <span>⬆️</span><h2>Depo / Aktivasyon</h2>
       <p>Frè aktivasyon kont lan se <b>500 HTG</b>. Kont lan dwe aktive apre verifikasyon peman an.</p>
       <button class="btn primary full" id="walletDepositBtn" type="button">Aktive kont · 500 HTG</button>
-      <small>NatCash poko konekte otomatikman. Pa voye lajan sou baz paj sa a sèlman.</small>
+      <small>Pou depo, soumèt referans tranzaksyon an nan Kont mwen; administratè a ap verifye li anvan li antre nan bous la.</small>
     </article>
     <article class="wallet-action-card">
       <span>⬇️</span><h2>Demann retrè</h2>
-      <p>Retrè a dwe disponib sèlman lè kondisyon yo satisfè epi sistèm lan valide demann lan.</p>
-      <button class="btn outline full" id="walletWithdrawBtn" type="button">Mande retrè</button>
-      <small>Demann retrè reyèl la poko aktive nan vèsyon sa a.</small>
+      <p>Retrè minimòm lan se 255 HTG. Apre administratè a lanse li, PaymPlopPlop trete retrè a sou NatCash oswa MonCash.</p>
+      <form id="walletWithdrawalForm" class="wallet-withdrawal-form">
+        <label>Kantite pou retire (HTG)<input name="amount" type="number" min="255" step="1" required></label>
+        <label>Metòd retrè<select name="method" required><option value="natcash">NatCash</option><option value="moncash">MonCash</option></select></label>
+        <label>Nimewo telefòn pou resevwa<input name="phone" inputmode="tel" maxlength="20" placeholder="509XXXXXXXX" required></label>
+        <button class="btn outline full" type="submit">Soumèt demann retrè</button>
+      </form>
+      <small id="walletWithdrawalStatus" role="status">Apre administratè a lanse demann lan, sistèm nan verifye estati retrè a atravè API machann lan.</small>
     </article>
   </section>
 
@@ -77,12 +82,7 @@
 </main>
 
 <footer><b>BOUSPAM</b><span>© 2026 · Tout dwa rezève</span><span>HTG · Ayiti</span></footer>
-<nav class="bottom-nav bouspam-nav" aria-label="Navigasyon prensipal">
-  <a class="bottom-link" href="index.html"><span>⌂</span><small>Akèy</small></a>
-  <a class="bottom-link" href="compte.html"><span>👤</span><small>Kont</small></a>
-  <a class="bottom-link" href="jeux.html"><span>🎮</span><small>Jwèt</small></a>
-  <a class="bottom-link active" href="bous.html"><span>💰</span><small>Bous</small></a>
-</nav>
+<nav class="bottom-nav bouspam-nav" aria-label="Navigasyon prensipal"><a class="bottom-link" href="index.html" aria-label="Akèy"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><small>Akèy</small></a><a class="bottom-link" href="jeux.html" aria-label="Jwèt"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.8 5.3l-1.1 3.4a2.5 2.5 0 0 1-4.1 1l-2-1.7H9.4l-2 1.7a2.5 2.5 0 0 1-4.1-1l-1.1-3.4A4 4 0 0 1 6 8Z"/><path d="M7 11v4m-2-2h4m7-1h.01M18 14h.01"/></svg></span><small>Jwèt</small></a><a class="bottom-link active" href="bous.html" aria-label="Bous"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 14h2M6 5V3h12v2"/></svg></span><small>Bous</small></a><a class="bottom-link" href="compte.html" aria-label="Kont"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><small>Kont</small></a></nav>
 <div class="toast" id="walletToast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -153,8 +153,37 @@
     allTransactions = (data || []).map(tx => ({...tx, currency: wallet?.currency || "HTG"}));
     renderTransactions();
   }
-  $("#walletDepositBtn")?.addEventListener("click", () => toast("Aktivasyon ak peman 500 HTG poko konekte. Pa voye lajan jiskaske verifikasyon ofisyèl la pare."));
-  $("#walletWithdrawBtn")?.addEventListener("click", () => toast("Demann retrè reyèl poko aktive. N ap aktive l sèlman apre verifikasyon sou sèvè."));
+  $("#walletDepositBtn")?.addEventListener("click", () => { window.location.href = "compte.html#financeDetails"; });
+  $("#walletWithdrawalForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = $("#walletWithdrawalStatus");
+    const button = form.querySelector('button[type="submit"]');
+    if (!db) { if (status) status.textContent = "Konfigirasyon Supabase pa pare."; return; }
+    const { data: sessionData, error: sessionError } = await db.auth.getSession();
+    if (sessionError || !sessionData.session) { if (status) status.textContent = "Konekte sou kont BOUSPAM ou anvan ou mande retrè."; return; }
+    const data = new FormData(form);
+    const amount = Number(data.get("amount"));
+    const phone = String(data.get("phone") || "").replace(/\D/g, "");
+    const method = String(data.get("method") || "natcash");
+    if (!Number.isFinite(amount) || amount < 255 || !/^509\d{8}$/.test(phone) || !["natcash","moncash"].includes(method)) {
+      if (status) status.textContent = "Retrè minimòm lan se 255 HTG. Chwazi NatCash oswa MonCash epi antre nimewo 509XXXXXXXX la.";
+      return;
+    }
+    if (button) button.disabled = true;
+    if (status) status.textContent = "Ap voye demann retrè a…";
+    try {
+      const { data: requestId, error } = await db.rpc("bouspam_create_money_request", {
+        p_request_type: "withdrawal", p_amount: amount, p_reference: phone, p_method: method
+      });
+      if (error) throw error;
+      if (status) status.textContent = `Demann retrè a anrejistre. Nimewo demann: ${requestId}. Balans lan rezève pandan administratè a trete retrè a.`;
+      form.reset();
+      await loadWallet();
+    } catch (err) {
+      if (status) status.textContent = "Demann retrè a pa pase: " + String(err?.message || "Erè bazdone.");
+    } finally { if (button) button.disabled = false; }
+  });
   $("#refreshWalletBtn")?.addEventListener("click", loadWallet);
   document.querySelectorAll("[data-filter]").forEach(btn => btn.addEventListener("click", () => {
     activeFilter = btn.dataset.filter;

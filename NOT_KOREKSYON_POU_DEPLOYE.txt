@@ -1,0 +1,24 @@
+BOUSPAM — NÒT KOREKSYON POU VÈSYON SA A
+
+Koreksyon ki fèt nan pake a:
+- Se Woulet BOUSPAM ak Bwat sekrè sèlman ki make kòm jwèt ki prevwa pou miz 50/100 HTG.
+- XO, Wòch/Papye/Sizo, Kat mistè ak Chèche objè kache make kòm jwèt gratis ak pwen jwèt.
+- Lis jwèt ki otorize nan fonksyon kliyan an pou miz la limite ak roulette ak secret_box.
+- Netwaye ansyen enstriksyon ki te mansyone GitHub; pake sa a prepare pou Cloudflare Pages.
+
+Verifikasyon lokal:
+- Retire avi ki te di NatCash pa konekte pandan fòm nan t ap eseye rele API a; mesaj la kounye a eksplike verifikasyon peman an.
+- Retire ID machann default la; kounye a backend la mande BOUSPAM_PAYMENT_CLIENT_ID nan Cloudflare.
+- Amelyore mesaj erè API a pou montre rezon founisè a lè li disponib.
+- JavaScript yo pase `node --check`.
+- Sa pa yon tès peman oswa retrè reyèl. API PLOP PLOP, secrets Cloudflare, kont Supabase ak fonksyon SQL yo dwe teste nan anviwònman deplwaye a.
+- Woulet ak Bwat sekrè rete fèmen pou miz reyèl jiskaske backend la valide rezilta, debi miz ak rekonpans sou sèvè a.
+- Pwen jwèt yo pa lajan, yo pa HTG, epi yo pa retrè.
+
+Deplwaman:
+- Mete sa ki anndan ZIP la dirèkteman nan root pwojè Cloudflare Pages; `index.html` dwe nan root.
+- Pa mete `SUPABASE_SERVICE_ROLE_KEY` oswa `BOUSPAM_PAYMENT_CLIENT_SECRET` nan fichye frontend. Mete yo kòm Secrets nan Cloudflare.
+- Pa kouri SQL yo ankò san nesesite. Sèvi ak SQL ki koresponn ak etap ou deja egzekite yo.
+
+
+PLOP PLOP: ID machann pp_jxxg1p174dj deja antre kòm valè pa defo nan functions/api/_shared.js. Mete URL retou sa a nan kont machann PLOP PLOP la: https://bouspam.pages.dev/ . API yo bezwen Cloudflare Pages Functions; GitHub Pages pa egzekite functions/api/*.js.

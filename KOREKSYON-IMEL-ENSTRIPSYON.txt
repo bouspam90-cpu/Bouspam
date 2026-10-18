@@ -1,0 +1,15 @@
+BOUSPAM — Koreksyon enskripsyon imèl
+
+Chanjman nan app.js:
+- Enskripsyon an kounye a mande Supabase pou retounen itilizatè a sou https://bouspam.pages.dev/index.html?open=login apre verifikasyon imèl.
+- Mesaj erè pou lyen retou oswa SMTP yo vin pi klè.
+- Supabase Auth ak sekirite ki te deja nan pwojè a rete an plas.
+
+ETAP OBLIGATWA NAN SUPABASE (sa pa ka chanje nan fichye ZIP la poukont li):
+1. Louvri https://supabase.com/dashboard/project/wzgoonkwizkvdsqsmcjq/auth/url-configuration
+2. Nan Redirect URLs, ajoute: https://bouspam.pages.dev/**
+3. Verifye Site URL la se https://bouspam.pages.dev
+4. Nan Authentication > Providers > Email, kite email confirmations aktive si ou vle verifye imèl.
+5. Si imèl yo pa rive, verifye Auth > SMTP Settings / limit imèl Supabase.
+
+Nòt: ZIP sa a pa deplwaye sou sit live la otomatikman. Apre tès, pibliye fichye yo sou Cloudflare Pages. Pa kouri SQL IMEI pou ranje pwoblèm imèl la.
