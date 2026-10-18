@@ -319,7 +319,7 @@ begin
       select id,referrer_id,referred_id,status,created_at from public.referrals where status='pending' order by created_at asc limit 100
     ) x),'[]'::jsonb),
     'transactions',coalesce((select jsonb_agg(x) from (
-      select user_id,type,amount,status,reference,created_at from public.transactions order by created_at desc limit 100
+      select id,user_id,type,amount,status,reference,created_at from public.transactions order by created_at desc limit 100
     ) x),'[]'::jsonb),
     'payment_requests',coalesce((select jsonb_agg(x) from (
       select id,user_id,request_type,amount,reference,status,admin_note,created_at,

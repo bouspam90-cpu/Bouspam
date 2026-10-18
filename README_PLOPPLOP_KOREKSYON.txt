@@ -43,3 +43,10 @@ KOREKSYON RETOU V2
 - Sove id_transaction PLOP PLOP nan transactions.provider_transaction_id.
 - Retou ki gen refference_id oswa id_transaction sèlman kapab lanse verifikasyon an; API backend la jwenn tranzaksyon ki pou itilizatè konekte a.
 - SQL migrasyon an ajoute provider_transaction_id ak provider_status si yo poko egziste.
+
+
+FALLBACK ADMIN SI API A PA BAY AKSÈ / PA BAY REPONS
+- Lè API kreyasyon peman an pa bay repons klè, BOUSPAM kite tranzaksyon aktivasyon an an pending epi montre referans li. Li pa make tranzaksyon an echwe otomatikman, paske founisè a ka te kreye peman an malgre repons lan te koupe. Manm nan pa dwe repete peman an.
+- Nan panel admin, tranzaksyon aktivasyon 500 HTG ki pending parèt ak bouton “Konfime apre verifikasyon”. Admin dwe verifye lajan an antre toutbon nan kont machann PLOP PLOP oswa li resevwa peman manyèl la anvan li peze bouton sa a. Bouton an rele /api/admin-activation-review; endpoint la verifye sesyon admin, admin_users, kalite tranzaksyon ak montan an, epi rele RPC aktivasyon ki mete balans manm nan a 0 HTG.
+- Si founisè a pa bay aksè ditou, API a pa ka fòse li voye lajan. Nan ka sa a, admin dwe resevwa peman an sou kont/mwayen li deja genyen epi verifye l manyèlman anvan aktivasyon. Pa janm konfime sèlman paske API a bay erè.
+- Nouvo endpoint admin-activation-review.js dwe deplwaye ansanm ak tout rès dosye functions/api/.

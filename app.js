@@ -40,7 +40,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"Peman yo pase nan sèvis PLOP PLOP la. Kont lan aktive sèlman apre verifikasyon tranzaksyon an.",
     "invite title":"🔗 Envite zanmi ou","invite desc":"Pataje lyen referans ou pou envite nouvo manm sou BOUSPAM.",
     "referral link label":"Lyen referans pèsonèl ou","copy link":"Kopye lyen an",
-    "referral promo":"💰 Règ referans: 255 HTG pou chak 2 referans ki valide (kont yo aktive).",
+    "referral promo":"💰 255 HTG pou chak referans valide (kont lan aktive).",
     "share referral":"📲 PATAJE LYEN REFERANS MWEN",
     "games eyebrow":"PLEZI AK DEFI","games title":"🎮 Jwèt BOUSPAM",
     "games desc":"Jwe, fè defi, epi ranmase pwen jwèt.",
@@ -82,7 +82,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"Les paiements passent par le service PLOP PLOP. Le compte est activé uniquement après vérification de la transaction.",
     "invite title":"🔗 Invitez vos amis","invite desc":"Partagez votre lien de parrainage pour inviter de nouveaux membres sur BOUSPAM.",
     "referral link label":"Votre lien de parrainage personnel","copy link":"Copier le lien",
-    "referral promo":"💰 Règle de parrainage : 255 HTG pour 2 filleuls validés (comptes activés).",
+    "referral promo":"💰 255 HTG pour chaque parrainage validé (compte activé).",
     "share referral":"📲 PARTAGER MON LIEN DE PARRAINAGE",
     "games eyebrow":"JEUX ET DÉFIS","games title":"🎮 Jeux BOUSPAM",
     "games desc":"Jouez, relevez des défis et gagnez des points de jeu.",
@@ -124,7 +124,7 @@ const UI_TRANSLATIONS = {
     "natcash notice":"Payments are processed through PLOP PLOP. The account is activated only after the transaction is verified.",
     "invite title":"🔗 Invite your friends","invite desc":"Share your referral link to invite new members to BOUSPAM.",
     "referral link label":"Your personal referral link","copy link":"Copy link",
-    "referral promo":"💰 Referral rule: 255 HTG for every 2 referrals whose accounts are activated.",
+    "referral promo":"💰 255 HTG for each validated referral (activated account).",
     "share referral":"📲 SHARE MY REFERRAL LINK",
     "games eyebrow":"FUN AND CHALLENGES","games title":"🎮 BOUSPAM Games",
     "games desc":"Play challenges and collect game points.",
@@ -420,6 +420,7 @@ async function loadDashboard(user) {
   }
   $("#dashboard").scrollIntoView({ behavior: "smooth", block: "start" });
   initGamesForUser(user.id);
+  refreshPointsConversion();
 }
 $("#copyReferralBtn")?.addEventListener("click", async () => {
   const input = $("#referralLink"), message = $("#referralMessage");
@@ -665,6 +666,11 @@ $("#activationPaymentForm")?.addEventListener("submit", async (event) => {
     const result = await callBouspamPayment("/api/payment-create", { type:"activation", amount:500, payment_method:method, phone_number:phone });
     if (result.reference) { sessionStorage.setItem("bouspam_pending_payment", result.reference); }
     if (result.transaction_id) { sessionStorage.setItem("bouspam_pending_transaction_id", result.transaction_id); }
+    if (result.manual_review) {
+      if(status) status.textContent = "⚠️ " + String(result.message || "API a pa konfime tranzaksyon an.") + " Referans: " + String(result.reference || "");
+      toast("Demann lan rete annatant pou admin verifye. Pa peye de fwa.");
+      return;
+    }
     if (result.url) { if(status) status.textContent="Tranzaksyon an pare. W ap voye sou paj peman an…"; window.location.assign(result.url); return; }
     if (status) status.textContent = "Demann peman an kreye. Swiv enstriksyon ki vini sou telefòn ou. Referans BOUSPAM: " + result.reference + ". Ap verifye peman an…";
     // USSD/telefòn: verifye plizyè fwa; kont lan pa aktive jiskaske API a konfime li.
@@ -680,6 +686,50 @@ const paymentVerifyButton = document.createElement("button");
 paymentVerifyButton.type = "button"; paymentVerifyButton.className = "btn outline full"; paymentVerifyButton.textContent = "Verifye yon peman ki deja fèt";
 paymentVerifyButton.addEventListener("click", async()=>{ const params=new URLSearchParams(location.search); const ref=sessionStorage.getItem("bouspam_pending_payment") || params.get("ref") || params.get("refference_id") || params.get("reference_id") || ""; const tx=sessionStorage.getItem("bouspam_pending_transaction_id") || params.get("id_transaction") || params.get("transaction_id") || ""; if(!ref && !tx){const st=document.querySelector("#activationPaymentStatus");if(st)st.textContent="Pa gen referans oswa nimewo tranzaksyon annatant sou aparèy sa a.";return;} await verifyBouspamPayment(ref,false,tx); });
 document.querySelector("#activationPaymentForm")?.append(paymentVerifyButton);
+
+async function refreshPointsConversion() {
+  const pointsEl = document.querySelector("#convertiblePoints");
+  const select = document.querySelector("#pointsToConvert");
+  if (!pointsEl || !currentUser || !db) return;
+  pointsEl.textContent = "…";
+  const {data, error} = await db.from("bouspam_daily_game_points").select("points").eq("user_id", currentUser.id);
+  if (error) { pointsEl.textContent = "Pa disponib"; return; }
+  const total = (data || []).reduce((sum, row) => sum + (Number(row.points) || 0), 0);
+  pointsEl.textContent = String(total);
+  if (select) {
+    const available = Math.floor(total / 500) * 500;
+    select.innerHTML = available > 0
+      ? Array.from({length: Math.min(available / 500, 20)}, (_, i) => { const pts=(i+1)*500; return `<option value="${pts}">${pts} pwen → ${pts/5} HTG</option>`; }).join("")
+      : '<option value="">Ou bezwen omwen 500 pwen</option>';
+    select.disabled = available < 500;
+  }
+}
+
+$("#pointsConversionForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const status = document.querySelector("#pointsConversionStatus");
+  const points = Number(new FormData(form).get("points"));
+  if (!db || !currentUser) { if(status) status.textContent = "Konekte sou kont ou anvan konvèsyon."; return; }
+  if (!Number.isInteger(points) || points < 500 || points % 500 !== 0) { if(status) status.textContent = "Chwazi omwen 500 pwen."; return; }
+  const keyStore = "bouspam_point_conversion_key_" + currentUser.id;
+  let requestKey = sessionStorage.getItem(keyStore);
+  if (!requestKey) { requestKey = (crypto.randomUUID ? crypto.randomUUID() : "BSPC-" + Date.now() + "-" + Math.random().toString(36).slice(2)); sessionStorage.setItem(keyStore, requestKey); }
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ap verifye pwen yo epi anrejistre konvèsyon an an sekirite…";
+  try {
+    const {data, error} = await db.rpc("bouspam_convert_points", {p_points:points, p_request_key:requestKey});
+    if (error) throw error;
+    sessionStorage.removeItem(keyStore);
+    if (status) status.textContent = `Konvèsyon konfime: ${Number(data?.points || points)} pwen → ${Number(data?.amount_htg || points/5)} HTG.`;
+    await refreshPointsConversion();
+    await loadDashboard(currentUser);
+  } catch (error) {
+    console.error("Konvèsyon pwen BOUSPAM pa reyisi:", error);
+    if (status) status.textContent = "Konvèsyon an pa konfime: " + String(error.message || "Erè bazdone.") + " Si repons lan te koupe, eseye ankò san fè yon lòt peman; menm kle demann lan ap anpeche double kredi.";
+  } finally { if (button) button.disabled = false; }
+});
 
 $("#depositForm")?.addEventListener("submit", (event) => {
   event.preventDefault(); const amount = Number(new FormData(event.currentTarget).get("amount")); submitMoneyRequest(event.currentTarget, "deposit", amount);
@@ -809,7 +859,7 @@ function showGame(id) {
     },
     number: () => {
       numberTarget = Math.floor(Math.random()*10)+1; numberAttempts = 0;
-      body.innerHTML = `<p>Devine yon nimewo ant 1 ak 10. Ou gen 3 esè.</p><form id="numberForm" class="game-form"><input id="numberGuess" type="number" min="1" max="10" required placeholder="Nimewo 1–10"><button class="btn primary">Verifye</button></form>`;
+      body.innerHTML = `<p>Devine yon nimewo ant 1 ak 10. Ou gen 2 esè.</p><form id="numberForm" class="game-form"><input id="numberGuess" type="number" min="1" max="10" required placeholder="Nimewo 1–10"><button class="btn primary">Verifye</button></form>`;
       $("#numberForm").onsubmit = e => { e.preventDefault(); const guess = Number($("#numberGuess").value); numberAttempts++; if (guess === numberTarget) { addGamePoints(20, "Bon repons!"); $("#numberForm").innerHTML = `<button type="button" class="btn outline" id="againNumber">Jwe ankò</button>`; $("#againNumber").onclick = () => showGame("number"); } else if (numberAttempts >= 3) { gameFeedback("Nimewo a se " + numberTarget + ". Eseye ankò!"); $("#numberForm").innerHTML = `<button type="button" class="btn outline" id="againNumber">Jwe ankò</button>`; $("#againNumber").onclick = () => showGame("number"); } else gameFeedback(guess < numberTarget ? "Nimewo a pi wo. Eseye ankò." : "Nimewo a pi ba. Eseye ankò."); };
     },
     quiz: () => {
@@ -887,7 +937,7 @@ document.querySelectorAll("[data-game]").forEach(button => button.addEventListen
     if (body) body.innerHTML = '<div class="notice"><b>Jwèt sa a klase kòm jwèt ak miz 50 oswa 100 HTG.</b><p>Entèfas la pare, men pa fè miz reyèl jiskaske fonksyon Supabase ki verifye jwèt la, debi miz la ak peman rekonpans lan enstale epi teste sou sèvè a. Sa pwoteje balans ou kont double debi oswa move peman.</p><label for="moneyWager">Chwazi miz la</label><select id="moneyWager"><option value="50">50 HTG</option><option value="100">100 HTG</option></select><button class="btn primary" id="moneyGameStart" type="button">Verifye disponiblite jwèt la</button><p id="moneyGameStatus" role="status"></p></div>';
     $("#moneyGameStart")?.addEventListener("click", () => {
       const status = $("#moneyGameStatus");
-      if (status) status.textContent = "Backend jwèt ki valide rezilta ak rekonpans lan poko nan deplwaman sa a. Pa gen miz ki te voye ni lajan ki dwe debite.";
+      if (status) status.textContent = "Jwèt sa a ap tann validasyon final backend la. Pa gen miz ki te voye ni lajan ki dwe debite. Kontakte sipò si ou bezwen verifye disponiblite li.";
     });
     gameFeedback("Jwèt la make kòm jwèt ak miz; sistèm nan dwe konfime backend la anvan li pran lajan.");
     panel?.scrollIntoView({behavior:"smooth", block:"nearest"});
@@ -925,11 +975,11 @@ async function startBouspamGame(gameCode, wagerHTG = 0) {
   }
 
   const normalizedGameCode = gameCode;
-  const allowedGames = ["roulette", "secret_box"];
+  const allowedGames = ["roulette", "secret_box", "tictactoe", "rps", "mystery_cards", "hidden_object"];
   const gameAliases = { box: "secret_box", cards: "mystery_cards", hidden: "hidden_object" };
   const finalGameCode = gameAliases[normalizedGameCode] || normalizedGameCode;
   if (!allowedGames.includes(finalGameCode)) {
-    throw new Error("Se Woulet BOUSPAM ak Bwat sekrè sèlman ki otorize pou miz lajan an.");
+    throw new Error("Kòd jwèt sa a pa otorize pou miz lajan an.");
   }
   if (![50, 100].includes(Number(wagerHTG))) {
     throw new Error("Miz la dwe 50 oswa 100 HTG.");

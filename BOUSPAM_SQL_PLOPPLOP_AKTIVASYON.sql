@@ -87,6 +87,9 @@ begin
        set is_activated = true
      where id = p_user_id;
 
+    -- Frè aktivasyon an se pou kont machann/admin; bous manm nan kòmanse a 0 HTG.
+    insert into public.wallets(user_id,currency,balance,created_at) values(p_user_id,'HTG',0,now()) on conflict(user_id) do update set balance=0;
+
     update public.transactions
        set status = 'completed'
      where id = v_transaction_id;

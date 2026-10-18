@@ -30,7 +30,7 @@ API RETRÈ OTOMATIK
 
 SQL NAN SUPABASE
 - BOUSPAM_MONEY_ADMIN.sql: tab/fonksyon pou demann depo, rezèv balans, retrè otomatik, solde machann atravè Cloudflare ak panel admin.
-- BOUSPAM_REMAINING_FIXES.sql: limit 3 esè pa jou pou jwèt gratis yo; vèsyon sa a gen 11 jwèt gratis epi konsève ansyen konte esè yo.
+- BOUSPAM_REMAINING_FIXES.sql: limit 2 esè pa jou pou jwèt gratis yo; vèsyon sa a gen 11 jwèt gratis epi konsève ansyen konte esè yo.
 - BOUSPAM_ADMIN_JEUX_REFERENCES.sql ak BOUSPAM_PEMAN_REFERANS_CLOUDflare.sql gen lòt fonksyon administrasyon/referans ki deja egziste. Pa kouri yo ankò san nesesite; yo pa dwe ranplase fonksyon/triggers referans ou yo san verifikasyon.
 - Kouri BOUSPAM_SQL_PLOPPLOP_AKTIVASYON.sql pou enstale fonksyon bouspam_confirm_activation_payment la si li poko la. Cloudflare verifye peman PLOP PLOP la anvan li rele fonksyon sa a.
 

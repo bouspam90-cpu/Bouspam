@@ -67,7 +67,8 @@
         {key:'user_id',render:r=>`<code>${esc(r.user_id)}</code>`},{key:'type',render:r=>esc(r.type||'—')},
         {key:'amount',render:r=>esc(money(r.amount))},{key:'status',render:r=>`<span class="pill">${esc(r.status||'—')}</span>`},
         {key:'reference',render:r=>esc(r.reference||'—')},{key:'created_at',render:r=>esc(fmtDate(r.created_at))}
-      ],'Pa gen tranzaksyon pou montre.');
+      ],'Pa gen tranzaksyon pou montre.',r=>String(r.type||'').toLowerCase()==='activation'&&Number(r.amount)===500&&String(r.status||'').toLowerCase()==='pending'
+        ? `<button class="smallbtn approve" data-confirm-activation="${esc(r.id)}" data-reference="${esc(r.reference||'')}">Konfime apre verifikasyon</button>` : '—');
       $('#lastRefresh').textContent=`Dènye mizajou: ${new Date().toLocaleTimeString('fr-HT')}`;
     } catch(e) { showError(null,e); }
     finally {busy=false; $('#refreshBtn').disabled=false;}
@@ -95,6 +96,20 @@
       b.disabled=true;
       try {const {error}=await supabase.rpc('validate_referral',{p_referral_id:b.dataset.validateRef});if(error)throw error;toast('Referans lan valide.');await loadDashboard();}
       catch(err){showError(null,err);b.disabled=false;}
+    });
+    $('#transactionsTable').addEventListener('click',async e=>{
+      const b=e.target.closest('[data-confirm-activation]'); if(!b)return;
+      if(!confirm('AVÈTISMAN: itilize sa sèlman apre ou verifye 500 HTG la antre toutbon nan kont machann PLOP PLOP ou, oswa ou resevwa peman manyèl la. Si ou poko wè lajan an, peze Cancel. Konfime aktivasyon an kounye a?'))return;
+      b.disabled=true;
+      try{
+        const {data:{session}}=await supabase.auth.getSession();
+        if(!session?.access_token)throw new Error('Sesyon administratè a fini. Konekte ankò.');
+        const response=await fetch('/api/admin-activation-review',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({transaction_id:b.dataset.confirmActivation,reference:b.dataset.reference})});
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok||!result.ok)throw new Error(result.error||'Aktivasyon an pa t ka konfime.');
+        toast(result.message||'Aktivasyon konfime.');
+        await loadDashboard();
+      }catch(err){showError(null,err);b.disabled=false;}
     });
     $('#requestsTable').addEventListener('click',async e=>{
       const b=e.target.closest('[data-review-id]');if(!b)return;
